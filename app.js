@@ -78,6 +78,43 @@ function nextBadge(s) {
 }
 
 /* ════════════════════════════════════════════════════
+   TIME ESTIMATION
+════════════════════════════════════════════════════ */
+function estimateTopicTime(title, level, nodeIndex, totalNodes) {
+  // Base time by difficulty level
+  const levelMap = {
+    'class7':     { easy: 12, medium: 18, hard: 25 },
+    'class10':    { easy: 15, medium: 25, hard: 35 },
+    'class12':    { easy: 18, medium: 30, hard: 45 },
+    'engineering': { easy: 20, medium: 40, hard: 60 },
+    'curious':    { easy: 15, medium: 25, hard: 40 }
+  };
+
+  const base = levelMap[level] || levelMap['class10'];
+
+  // Topic type detection
+  let complexity = 'medium';
+  const t = (title || '').toLowerCase();
+  if (/intro|basic|simple|overview|definition/.test(t)) complexity = 'easy';
+  else if (/advanced|complex|deep|application|project|optimization/.test(t)) complexity = 'hard';
+
+  // Later nodes take slightly longer (cumulative learning)
+  let time = base[complexity];
+  if (nodeIndex > 2) time += 5;
+  if (nodeIndex > 5) time += 5;
+
+  return time;
+}
+
+function formatCompletionTime(minutesFromNow) {
+  const now = new Date();
+  const completion = new Date(now.getTime() + minutesFromNow * 60000);
+  const h = completion.getHours();
+  const m = String(completion.getMinutes()).padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+/* ════════════════════════════════════════════════════
    NOTIFICATIONS
 ════════════════════════════════════════════════════ */
 async function registerServiceWorker() {
@@ -298,14 +335,18 @@ function updateDashboard() {
     tx('today-topic', S.user.topic);
     if (nodes.length > 0) {
       const cur = nodes[S.learning.currentNodeIdx] || nodes[0];
+      const estTime = cur.estTime || 20;
+      const completionTime = formatCompletionTime(estTime);
       tx('today-sub', cur.title);
       tx('today-step', `Step ${S.learning.currentNodeIdx + 1} of ${nodes.length}`);
+      tx('today-time', `⏱️ ${estTime} mins | Complete by ${completionTime}`);
       $('dash-progress-fill').style.width = pct + '%';
       tx('dash-progress-label', `${done} of ${nodes.length} concepts mastered`);
       $('btn-start-learning').textContent = done > 0 ? '▶ Continue Learning' : '▶ Start Learning';
     } else {
       tx('today-sub',  'Click below to build your learning path');
       tx('today-step', '');
+      tx('today-time', '');
       $('dash-progress-fill').style.width = '0%';
       tx('dash-progress-label', 'No path built yet');
       $('btn-start-learning').textContent = '▶ Build Learning Path';
@@ -345,10 +386,14 @@ Rules: 5-8 nodes, ordered prerequisite basics → main topic → advanced applic
     const data = parseJSON(raw);
     if (!data?.nodes?.length) throw new Error('bad');
 
-    S.learning.nodes = data.nodes.map((n, i) => ({
-      id: i, title: n.title || `Step ${i+1}`, desc: n.desc || '',
-      status: i === 0 ? 'available' : 'locked'
-    }));
+    S.learning.nodes = data.nodes.map((n, i) => {
+      const estTime = estimateTopicTime(n.title, S.user.level, i, data.nodes.length);
+      return {
+        id: i, title: n.title || `Step ${i+1}`, desc: n.desc || '',
+        status: i === 0 ? 'available' : 'locked',
+        estTime: estTime
+      };
+    });
     S.learning.currentNodeIdx = 0;
     S.user.topic = topic;
     save();
@@ -377,11 +422,14 @@ function renderTree() {
   S.learning.nodes.forEach((node, idx) => {
     const div = document.createElement('div');
     div.className = `tree-node ${node.status}`;
+    const estTime = node.estTime || 20;
+    const completionTime = formatCompletionTime(estTime);
     div.innerHTML = `
       <div class="node-icon">${icons[node.status] || '📖'}</div>
       <div class="node-info">
         <div class="node-title">${node.title}</div>
         <div class="node-desc">${node.desc}</div>
+        <div class="node-time">⏱️ ${estTime} mins | Complete by ${completionTime}</div>
       </div>
       <div class="node-badge ${node.status}">${badges[node.status] || ''}</div>`;
     if (node.status === 'available' || node.status === 'current')
@@ -439,6 +487,11 @@ Make it conceptual and clear.`;
 async function goStory(nodeName, different) {
   showScreen('story');
   tx('story-topic', nodeName);
+  const node = S.learning.nodes[S.learning.currentNodeIdx];
+  if (node?.estTime) {
+    const completionTime = formatCompletionTime(node.estTime);
+    tx('story-time', `⏱️ Est time: ${node.estTime} mins | Complete by ${completionTime}`);
+  }
   hide('story-content'); show('story-loading');
 
   const audMap = { class7:'12-year-old', class10:'15-year-old', class12:'17-year-old', engineering:'engineering student', curious:'curious adult' };
@@ -496,6 +549,11 @@ Write ONLY the explanation text. No JSON, no headings, no bullet points, no form
 async function goQuiz(nodeName) {
   showScreen('quiz');
   tx('quiz-topic', nodeName);
+  const node = S.learning.nodes[S.learning.currentNodeIdx];
+  if (node?.estTime) {
+    const completionTime = formatCompletionTime(node.estTime);
+    tx('quiz-time', `⏱️ Est time: ${node.estTime} mins | Complete by ${completionTime}`);
+  }
   S.quiz.node = nodeName;
   S.quiz.currentQ = 0;
   S.quiz.answers  = [];
