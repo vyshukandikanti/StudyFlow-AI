@@ -356,9 +356,18 @@ function updateDashboard() {
         cumulativeTime += nodes[i].estTime || 20;
       }
       const completionTime = formatCompletionTime(cumulativeTime);
+
+      // Different display for done vs current/available
+      let timeDisplay = '';
+      if (cur.status === 'done') {
+        timeDisplay = `⏱️ ${estTime} mins | Completed at ${completionTime}`;
+      } else {
+        timeDisplay = `⏱️ ${estTime} mins | Complete by ${completionTime}`;
+      }
+
       tx('today-sub', cur.title);
       tx('today-step', `Step ${S.learning.currentNodeIdx + 1} of ${nodes.length}`);
-      tx('today-time', `⏱️ ${estTime} mins | Complete by ${completionTime}`);
+      tx('today-time', timeDisplay);
       $('dash-progress-fill').style.width = pct + '%';
       tx('dash-progress-label', `${done} of ${nodes.length} concepts mastered`);
       $('btn-start-learning').textContent = done > 0 ? '▶ Continue Learning' : '▶ Start Learning';
@@ -446,12 +455,21 @@ function renderTree() {
     const estTime = node.estTime || 20;
     cumulativeMinutes += estTime; // Add this topic's time to cumulative
     const completionTime = formatCompletionTime(cumulativeMinutes);
+
+    // Different display for DONE vs other statuses
+    let timeDisplay = '';
+    if (node.status === 'done') {
+      timeDisplay = `⏱️ ${estTime} mins | Completed at ${completionTime}`;
+    } else {
+      timeDisplay = `⏱️ ${estTime} mins | Complete by ${completionTime}`;
+    }
+
     div.innerHTML = `
       <div class="node-icon">${icons[node.status] || '📖'}</div>
       <div class="node-info">
         <div class="node-title">${node.title}</div>
         <div class="node-desc">${node.desc}</div>
-        <div class="node-time">⏱️ ${estTime} mins | Complete by ${completionTime}</div>
+        <div class="node-time">${timeDisplay}</div>
       </div>
       <div class="node-badge ${node.status}">${badges[node.status] || ''}</div>`;
     if (node.status === 'available' || node.status === 'current')
