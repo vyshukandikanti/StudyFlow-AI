@@ -11,7 +11,8 @@ let S = {
   user:     { name: '', topic: '', level: 'class10', studyTime: '19:00' },
   learning: { nodes: [], currentNodeIdx: 0 },
   progress: { mastered: [], streak: 0, lastActive: null, lastNotifDate: null },
-  quiz:     { questions: [], currentQ: 0, answers: [], node: '' }
+  quiz:     { questions: [], currentQ: 0, answers: [], node: '' },
+  ui:       { currentScreen: 'dashboard' }
 };
 
 function save() { localStorage.setItem('sf2', JSON.stringify(S)); }
@@ -25,6 +26,7 @@ function load() {
     S.learning = { nodes:[], currentNodeIdx:0, ...p.learning };
     S.progress = { mastered:[], streak:0, lastActive:null, lastNotifDate:null, ...p.progress };
     S.quiz     = { questions:[], currentQ:0, answers:[], node:'', ...p.quiz };
+    S.ui       = { currentScreen:'dashboard', ...p.ui };
   } catch(e) {}
 }
 
@@ -205,6 +207,9 @@ function showScreen(name) {
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.screen === name);
   });
+  // Smart Continuation: Remember which screen user is on
+  S.ui.currentScreen = name;
+  save();
 }
 
 /* ════════════════════════════════════════════════════
@@ -835,7 +840,10 @@ function init() {
 
   if (S.user.name && S.user.topic) {
     hide('screen-setup'); show('app');
-    updateStreak(); updateDashboard(); showScreen('dashboard');
+    updateStreak(); updateDashboard();
+    // Smart Continuation: Resume from last screen
+    const lastScreen = S.ui.currentScreen || 'dashboard';
+    showScreen(lastScreen);
     startNotificationScheduler();
   } else {
     show('screen-setup'); hide('app');
