@@ -132,8 +132,13 @@ function formatCompletionTimeFromStart(cumulativeMinutes) {
   // Calculate from stored start time + cumulative minutes
   const startTime = S.learning.startTime ? new Date(S.learning.startTime) : new Date();
   const completion = new Date(startTime.getTime() + cumulativeMinutes * 60000);
-  let h = completion.getHours();
-  const m = String(completion.getMinutes()).padStart(2, '0');
+  return formatTime(completion);
+}
+
+function formatTime(dateObj) {
+  // Format a Date object as "HH:MM AM/PM"
+  let h = dateObj.getHours();
+  const m = String(dateObj.getMinutes()).padStart(2, '0');
   const ampm = h >= 12 ? 'PM' : 'AM';
   h = h % 12 || 12;
   return `${h}:${m} ${ampm}`;
@@ -387,12 +392,18 @@ function updateDashboard() {
     if (nodes.length > 0) {
       const cur = nodes[S.learning.currentNodeIdx] || nodes[0];
       const estTime = cur.estTime || 20;
-      // Calculate cumulative time up to and including current topic
-      let cumulativeTime = 0;
-      for (let i = 0; i <= S.learning.currentNodeIdx; i++) {
-        cumulativeTime += nodes[i].estTime || 20;
+
+      // Calculate completion time based on actual completion times when available
+      let lastCompletionTime = S.learning.startTime ? new Date(S.learning.startTime) : new Date();
+      for (let i = 0; i < S.learning.currentNodeIdx; i++) {
+        if (nodes[i].actualCompletionTime) {
+          lastCompletionTime = new Date(nodes[i].actualCompletionTime);
+        } else {
+          lastCompletionTime = new Date(lastCompletionTime.getTime() + (nodes[i].estTime || 20) * 60000);
+        }
       }
-      const completionTime = formatCompletionTimeFromStart(cumulativeTime);
+      const nextCompletion = new Date(lastCompletionTime.getTime() + estTime * 60000);
+      const completionTime = formatTime(nextCompletion);
 
       // Different display for done vs current/available
       let timeDisplay = '';
@@ -484,14 +495,28 @@ function renderTree() {
   const icons  = { done:'✅', current:'▶', available:'📖', locked:'🔒' };
   const badges = { done:'DONE', current:'IN PROGRESS', available:'START', locked:'LOCKED' };
 
-  // Calculate cumulative completion times
-  let cumulativeMinutes = 0;
+  // Calculate completion times based on ACTUAL completion times when available
+  let lastCompletionTime = S.learning.startTime ? new Date(S.learning.startTime) : new Date();
+
   S.learning.nodes.forEach((node, idx) => {
     const div = document.createElement('div');
     div.className = `tree-node ${node.status}`;
     const estTime = node.estTime || 20;
-    cumulativeMinutes += estTime; // Add this topic's time to cumulative
-    const completionTime = formatCompletionTimeFromStart(cumulativeMinutes);
+
+    let completionTime;
+
+    if (node.status === 'done' && node.actualCompletionTime) {
+      // Use actual completion time if available
+      completionTime = formatTime(new Date(node.actualCompletionTime));
+      lastCompletionTime = new Date(node.actualCompletionTime);
+    } else {
+      // Calculate estimated completion time from last actual (or start) time
+      const nextCompletion = new Date(lastCompletionTime.getTime() + estTime * 60000);
+      completionTime = formatTime(nextCompletion);
+      if (node.status === 'done') {
+        lastCompletionTime = nextCompletion;
+      }
+    }
 
     // Different display for DONE vs other statuses
     let timeDisplay = '';
@@ -859,6 +884,9 @@ function advanceNode() {
   const idx  = S.learning.currentNodeIdx;
   const node = S.learning.nodes[idx];
   node.status = 'done';
+
+  // Record actual completion time (when quiz was completed)
+  node.actualCompletionTime = new Date().toISOString();
 
   const actualScore = S.quiz.answers.filter(Boolean).length;
   S.progress.mastered.push({
