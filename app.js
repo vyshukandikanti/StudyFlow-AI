@@ -129,9 +129,10 @@ function formatCompletionTime(minutesFromNow) {
 }
 
 function formatCompletionTimeFromStart(cumulativeMinutes) {
-  // Calculate time from session start time (not from current time)
-  const startTime = S.learning.startTime ? new Date(S.learning.startTime) : new Date();
-  const completion = new Date(startTime.getTime() + cumulativeMinutes * 60000);
+  // Calculate from NOW + cumulative minutes
+  // This ensures times are always accurate to current moment
+  const now = new Date();
+  const completion = new Date(now.getTime() + cumulativeMinutes * 60000);
   let h = completion.getHours();
   const m = String(completion.getMinutes()).padStart(2, '0');
   const ampm = h >= 12 ? 'PM' : 'AM';
@@ -147,6 +148,32 @@ async function registerServiceWorker() {
   try {
     const reg = await navigator.serviceWorker.register('service-worker.js');
     console.log('SW registered');
+
+    // Check for updates every 30 seconds
+    setInterval(async () => {
+      try {
+        await reg.update();
+      } catch (e) {
+        console.log('Update check failed');
+      }
+    }, 30000);
+
+    // If a new service worker is waiting, reload the page
+    if (reg.waiting) {
+      console.log('New version available - reloading...');
+      location.reload();
+    }
+
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          console.log('New version available - reloading...');
+          location.reload();
+        }
+      });
+    });
+
     return reg;
   } catch(e) {
     console.warn('SW registration failed (likely file:// — deploy to https for full features):', e.message);

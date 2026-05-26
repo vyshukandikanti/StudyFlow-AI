@@ -1,5 +1,5 @@
 // StudyFlow AI — Service Worker
-const CACHE_NAME = 'studyflow-v1';
+const CACHE_NAME = 'studyflow-v2';
 const FILES_TO_CACHE = [
   './',
   './index.html',
@@ -17,7 +17,7 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// Activate — clean old caches
+// Activate — clean old caches and claim immediately
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -27,14 +27,23 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch — serve from cache, fall back to network
+// Fetch — always check network for HTML, cache other assets
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   // Don't cache Groq API calls
   if (event.request.url.includes('api.groq.com')) return;
-  event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request))
-  );
+
+  // Always fetch index.html from network to get latest updates
+  if (event.request.url.includes('index.html') || event.request.url.endsWith('/')) {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+  } else {
+    // Cache other assets
+    event.respondWith(
+      caches.match(event.request).then(cached => cached || fetch(event.request))
+    );
+  }
 });
 
 // Click on notification → open the app
