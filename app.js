@@ -92,18 +92,30 @@ function estimateTopicTime(title, level, nodeIndex, totalNodes) {
 
   const base = levelMap[level] || levelMap['class10'];
 
-  // Topic type detection
+  // Sophisticated complexity detection
   let complexity = 'medium';
   const t = (title || '').toLowerCase();
-  if (/intro|basic|simple|overview|definition/.test(t)) complexity = 'easy';
-  else if (/advanced|complex|deep|application|project|optimization/.test(t)) complexity = 'hard';
 
-  // Later nodes take slightly longer (cumulative learning)
+  // EASY: Intro, basics, fundamentals
+  if (/intro|basic|fundamental|simple|overview|definition|what is|get started/.test(t)) {
+    complexity = 'easy';
+  }
+  // HARD: Advanced, OOP, architecture, optimization, analysis, visualization, machine learning, etc.
+  else if (/advanced|oop|object-oriented|architecture|optimization|analysis|visualization|machine learning|design pattern|algorithm|data structure/.test(t)) {
+    complexity = 'hard';
+  }
+  // MEDIUM: Everything else
+  else {
+    complexity = 'medium';
+  }
+
+  // Base time for complexity
   let time = base[complexity];
-  if (nodeIndex > 2) time += 5;
-  if (nodeIndex > 5) time += 5;
 
-  return time;
+  // Add progressive time based on node position (learning gets deeper)
+  time += nodeIndex * 3;
+
+  return Math.min(time, 50); // Cap at 50 mins max
 }
 
 function formatCompletionTime(minutesFromNow) {
