@@ -350,7 +350,12 @@ function updateDashboard() {
     if (nodes.length > 0) {
       const cur = nodes[S.learning.currentNodeIdx] || nodes[0];
       const estTime = cur.estTime || 20;
-      const completionTime = formatCompletionTime(estTime);
+      // Calculate cumulative time up to and including current topic
+      let cumulativeTime = 0;
+      for (let i = 0; i <= S.learning.currentNodeIdx; i++) {
+        cumulativeTime += nodes[i].estTime || 20;
+      }
+      const completionTime = formatCompletionTime(cumulativeTime);
       tx('today-sub', cur.title);
       tx('today-step', `Step ${S.learning.currentNodeIdx + 1} of ${nodes.length}`);
       tx('today-time', `⏱️ ${estTime} mins | Complete by ${completionTime}`);
@@ -433,11 +438,14 @@ function renderTree() {
   const icons  = { done:'✅', current:'▶', available:'📖', locked:'🔒' };
   const badges = { done:'DONE', current:'IN PROGRESS', available:'START', locked:'LOCKED' };
 
+  // Calculate cumulative completion times
+  let cumulativeMinutes = 0;
   S.learning.nodes.forEach((node, idx) => {
     const div = document.createElement('div');
     div.className = `tree-node ${node.status}`;
     const estTime = node.estTime || 20;
-    const completionTime = formatCompletionTime(estTime);
+    cumulativeMinutes += estTime; // Add this topic's time to cumulative
+    const completionTime = formatCompletionTime(cumulativeMinutes);
     div.innerHTML = `
       <div class="node-icon">${icons[node.status] || '📖'}</div>
       <div class="node-info">
