@@ -129,10 +129,9 @@ function formatCompletionTime(minutesFromNow) {
 }
 
 function formatCompletionTimeFromStart(cumulativeMinutes) {
-  // Calculate from NOW + cumulative minutes
-  // This ensures times are always accurate to current moment
-  const now = new Date();
-  const completion = new Date(now.getTime() + cumulativeMinutes * 60000);
+  // Calculate from stored start time + cumulative minutes
+  const startTime = S.learning.startTime ? new Date(S.learning.startTime) : new Date();
+  const completion = new Date(startTime.getTime() + cumulativeMinutes * 60000);
   let h = completion.getHours();
   const m = String(completion.getMinutes()).padStart(2, '0');
   const ampm = h >= 12 ? 'PM' : 'AM';
@@ -517,10 +516,53 @@ function renderTree() {
 }
 
 function startNode(idx) {
-  // Set start time on first topic only
+  // Show time picker on first topic only
   if (!S.learning.startTime) {
-    S.learning.startTime = new Date().toISOString();
+    showStartTimeModal(idx);
+  } else {
+    proceedToNode(idx);
   }
+}
+
+function showStartTimeModal(idx) {
+  const modal = $('start-time-modal');
+  const input = $('start-time-input');
+  const btn = $('btn-confirm-start-time');
+
+  // Set default to current time
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  input.value = `${h}:${m}`;
+
+  // Show modal
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+
+  // Handle confirm
+  btn.onclick = () => {
+    const timeStr = input.value;
+    if (!timeStr) {
+      alert('Please select a time');
+      return;
+    }
+
+    // Store start time as today's date with selected time
+    const [hours, mins] = timeStr.split(':');
+    const startTime = new Date();
+    startTime.setHours(parseInt(hours), parseInt(mins), 0, 0);
+
+    S.learning.startTime = startTime.toISOString();
+    save();
+
+    // Hide modal and proceed
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+    proceedToNode(idx);
+  };
+}
+
+function proceedToNode(idx) {
   S.learning.currentNodeIdx = idx;
   S.learning.nodes[idx].status = 'current';
   save();

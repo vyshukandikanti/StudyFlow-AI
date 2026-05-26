@@ -290,6 +290,15 @@
     <button class="nav-btn" data-screen="settings"><span>⚙️</span><span class="nav-label">Profile</span></button>
   </nav>
 
+  <!-- START TIME PICKER MODAL -->
+  <div id="start-time-modal" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: #0a0e18; border: 2px solid #00C6FF; border-radius: 16px; padding: 24px; text-align: center; max-width: 300px; box-shadow: 0 0 30px rgba(0, 198, 255, 0.2);">
+      <div style="font-size: 18px; font-weight: bold; color: #00C6FF; margin-bottom: 12px;">⏰ What time are you starting?</div>
+      <input type="time" id="start-time-input" style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #00C6FF; border-radius: 8px; background: #080C14; color: #00C6FF; margin-bottom: 16px; text-align: center;" />
+      <button id="btn-confirm-start-time" style="width: 100%; padding: 12px; background: #00C6FF; color: #080C14; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">▶ Start Now</button>
+    </div>
+  </div>
+
 </div>
 
 <script src="app.js"></script>
