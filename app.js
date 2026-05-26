@@ -569,6 +569,59 @@ function proceedToNode(idx) {
   goStory(S.learning.nodes[idx].title, false);
 }
 
+function showChangeStartTimeModal() {
+  const modal = $('start-time-modal');
+  const input = $('start-time-input');
+  const btn = $('btn-confirm-start-time');
+
+  // If no session started yet, show error
+  if (!S.learning.startTime) {
+    alert('Start a learning session first by clicking "Start Learning" on a topic.');
+    return;
+  }
+
+  // Set input to current start time
+  const startTime = new Date(S.learning.startTime);
+  const h = String(startTime.getHours()).padStart(2, '0');
+  const m = String(startTime.getMinutes()).padStart(2, '0');
+  input.value = `${h}:${m}`;
+
+  // Show modal
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+
+  // Handle confirm
+  btn.onclick = () => {
+    const timeStr = input.value;
+    if (!timeStr) {
+      alert('Please select a time');
+      return;
+    }
+
+    // Update start time
+    const [hours, mins] = timeStr.split(':');
+    const newStartTime = new Date();
+    newStartTime.setHours(parseInt(hours), parseInt(mins), 0, 0);
+
+    S.learning.startTime = newStartTime.toISOString();
+    save();
+
+    // Hide modal
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+
+    // Refresh display
+    if (!$('screen-tree').classList.contains('hidden')) {
+      renderTree();
+    }
+    if (!$('screen-dashboard').classList.contains('hidden')) {
+      updateDashboard();
+    }
+
+    alert('✅ Session start time updated! Times have been recalculated.');
+  };
+}
+
 /* ════════════════════════════════════════════════════
    DIAGNOSTIC
 ════════════════════════════════════════════════════ */
@@ -1130,6 +1183,7 @@ function init() {
   $('btn-logout').addEventListener('click', logout);
   $('btn-settings-tree').addEventListener('click', () => showScreen('tree'));
   $('btn-settings-progress').addEventListener('click', () => { renderProgressWall(); showScreen('progress'); });
+  $('btn-change-start-time').addEventListener('click', showChangeStartTimeModal);
   initLevelCards($('edit-level-grid'));
 }
 
