@@ -1,0 +1,36 @@
+# Netlify configuration for StudyFlow AI
+
+[build]
+  # No build step needed - vanilla HTML/CSS/JS
+  command = ""
+  publish = "."
+
+# Cache headers for static assets
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+# Don't cache HTML (so service worker updates are detected)
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Don't cache service worker (critical!)
+[[headers]]
+  for = "/service-worker.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Don't cache manifest (PWA updates)
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Redirect 404s to index.html for single-page apps
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
