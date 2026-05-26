@@ -109,9 +109,11 @@ function estimateTopicTime(title, level, nodeIndex, totalNodes) {
 function formatCompletionTime(minutesFromNow) {
   const now = new Date();
   const completion = new Date(now.getTime() + minutesFromNow * 60000);
-  const h = completion.getHours();
+  let h = completion.getHours();
   const m = String(completion.getMinutes()).padStart(2, '0');
-  return `${h}:${m}`;
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12; // Convert to 12-hour format
+  return `${h}:${m} ${ampm}`;
 }
 
 /* ════════════════════════════════════════════════════
