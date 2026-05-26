@@ -9,7 +9,7 @@ function getApiKey() { return localStorage.getItem('sf_apikey') || ''; }
 ════════════════════════════════════════════════════ */
 let S = {
   user:     { name: '', topic: '', level: 'class10', studyTime: '19:00' },
-  learning: { nodes: [], currentNodeIdx: 0 },
+  learning: { nodes: [], currentNodeIdx: 0, startTime: null },
   progress: { mastered: [], streak: 0, lastActive: null, lastNotifDate: null },
   quiz:     { questions: [], currentQ: 0, answers: [], node: '' },
   ui:       { currentScreen: 'dashboard' }
@@ -23,7 +23,7 @@ function load() {
     if (!raw) return;
     const p = JSON.parse(raw);
     S.user     = { name:'', topic:'', level:'class10', studyTime:'19:00', ...p.user };
-    S.learning = { nodes:[], currentNodeIdx:0, ...p.learning };
+    S.learning = { nodes:[], currentNodeIdx:0, startTime:null, ...p.learning };
     S.progress = { mastered:[], streak:0, lastActive:null, lastNotifDate:null, ...p.progress };
     S.quiz     = { questions:[], currentQ:0, answers:[], node:'', ...p.quiz };
     S.ui       = { currentScreen:'dashboard', ...p.ui };
@@ -125,6 +125,17 @@ function formatCompletionTime(minutesFromNow) {
   const m = String(completion.getMinutes()).padStart(2, '0');
   const ampm = h >= 12 ? 'PM' : 'AM';
   h = h % 12 || 12; // Convert to 12-hour format
+  return `${h}:${m} ${ampm}`;
+}
+
+function formatCompletionTimeFromStart(cumulativeMinutes) {
+  // Calculate time from session start time (not from current time)
+  const startTime = S.learning.startTime ? new Date(S.learning.startTime) : new Date();
+  const completion = new Date(startTime.getTime() + cumulativeMinutes * 60000);
+  let h = completion.getHours();
+  const m = String(completion.getMinutes()).padStart(2, '0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
   return `${h}:${m} ${ampm}`;
 }
 
@@ -355,7 +366,7 @@ function updateDashboard() {
       for (let i = 0; i <= S.learning.currentNodeIdx; i++) {
         cumulativeTime += nodes[i].estTime || 20;
       }
-      const completionTime = formatCompletionTime(cumulativeTime);
+      const completionTime = formatCompletionTimeFromStart(cumulativeTime);
 
       // Different display for done vs current/available
       let timeDisplay = '';
@@ -454,7 +465,7 @@ function renderTree() {
     div.className = `tree-node ${node.status}`;
     const estTime = node.estTime || 20;
     cumulativeMinutes += estTime; // Add this topic's time to cumulative
-    const completionTime = formatCompletionTime(cumulativeMinutes);
+    const completionTime = formatCompletionTimeFromStart(cumulativeMinutes);
 
     // Different display for DONE vs other statuses
     let timeDisplay = '';
@@ -479,6 +490,10 @@ function renderTree() {
 }
 
 function startNode(idx) {
+  // Set start time on first topic only
+  if (!S.learning.startTime) {
+    S.learning.startTime = new Date().toISOString();
+  }
   S.learning.currentNodeIdx = idx;
   S.learning.nodes[idx].status = 'current';
   save();
@@ -529,7 +544,12 @@ async function goStory(nodeName, different) {
   tx('story-topic', nodeName);
   const node = S.learning.nodes[S.learning.currentNodeIdx];
   if (node?.estTime) {
-    const completionTime = formatCompletionTime(node.estTime);
+    // Calculate cumulative time up to and including this topic
+    let cumulativeTime = 0;
+    for (let i = 0; i <= S.learning.currentNodeIdx; i++) {
+      cumulativeTime += S.learning.nodes[i].estTime || 20;
+    }
+    const completionTime = formatCompletionTimeFromStart(cumulativeTime);
     tx('story-time', `⏱️ Est time: ${node.estTime} mins | Complete by ${completionTime}`);
   }
   hide('story-content'); show('story-loading');
@@ -591,7 +611,12 @@ async function goQuiz(nodeName) {
   tx('quiz-topic', nodeName);
   const node = S.learning.nodes[S.learning.currentNodeIdx];
   if (node?.estTime) {
-    const completionTime = formatCompletionTime(node.estTime);
+    // Calculate cumulative time up to and including this topic
+    let cumulativeTime = 0;
+    for (let i = 0; i <= S.learning.currentNodeIdx; i++) {
+      cumulativeTime += S.learning.nodes[i].estTime || 20;
+    }
+    const completionTime = formatCompletionTimeFromStart(cumulativeTime);
     tx('quiz-time', `⏱️ Est time: ${node.estTime} mins | Complete by ${completionTime}`);
   }
   S.quiz.node = nodeName;
