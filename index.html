@@ -346,10 +346,24 @@
 
       <div class="settings-section">
         <div class="settings-title">API KEY</div>
-        <div class="field-label">GROQ API KEY</div>
-        <input type="password" id="api-key-input" placeholder="gsk_..." autocomplete="off"/>
-        <div class="api-key-status" id="api-key-status">No key set</div>
-        <button class="btn btn-ghost full-btn" id="btn-save-key">Save API Key</button>
+        <div class="api-key-card">
+          <div class="api-key-info">
+            <div class="api-key-info-icon">🔑</div>
+            <div>
+              <div class="api-key-info-title">Groq API Key Required</div>
+              <div class="api-key-info-desc">StudyFlow AI uses Groq to generate your lessons and quizzes. You need a free API key to use it. It takes 30 seconds to get one!</div>
+            </div>
+          </div>
+          <a href="https://console.groq.com/keys" target="_blank" class="btn btn-neon full-btn api-get-btn">🚀 Get Free API Key at console.groq.com →</a>
+
+          <div class="field-label" style="margin-top:16px;">PASTE YOUR KEY BELOW</div>
+          <div class="api-input-row">
+            <input type="password" id="api-key-input" placeholder="gsk_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" class="api-key-big-input"/>
+            <button class="api-eye-btn" id="btn-toggle-key" title="Show/Hide">👁</button>
+          </div>
+          <div class="api-key-status" id="api-key-status">No key saved yet</div>
+          <button class="btn btn-neon full-btn" id="btn-save-key">💾 Save API Key</button>
+        </div>
       </div>
 
       <div class="neon-divider"></div>

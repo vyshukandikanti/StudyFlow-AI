@@ -1578,6 +1578,12 @@ function initAllListeners() {
   /* Settings */
   $('btn-save-key')?.addEventListener('click', saveApiKey);
   $('api-key-input')?.addEventListener('keydown', e => { if (e.key === 'Enter') saveApiKey(); });
+  $('btn-toggle-key')?.addEventListener('click', () => {
+    const inp = $('api-key-input');
+    if (!inp) return;
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    $('btn-toggle-key').textContent = inp.type === 'password' ? '👁' : '🙈';
+  });
   $('btn-save-time')?.addEventListener('click', saveReminderTime);
   $('btn-enable-notif')?.addEventListener('click', enableNotifications);
   $('btn-test-notif')?.addEventListener('click', sendTestNotification);
