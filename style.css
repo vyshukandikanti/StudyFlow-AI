@@ -54,6 +54,7 @@ body::after {
   flex-direction: column;
   z-index: 10;
   overflow-y: auto;
+  background: var(--bg);
 }
 
 /* Top nav bar */
@@ -284,8 +285,8 @@ body::after {
 
 /* ══ APP CONTAINER ════════════════════════════════════ */
 .app-container {
-  display: flex !important;
-  flex-direction: row !important;
+  display: flex;
+  flex-direction: row;
   height: 100vh;
   width: 100%;
   overflow: hidden;
