@@ -82,6 +82,7 @@ function setupAuthListeners() {
   // Landing buttons
   $('btn-landing-login').addEventListener('click', showLoginModal);
   $('btn-landing-signup').addEventListener('click', showSignupModal);
+  $('btn-hero-signup')?.addEventListener('click', showSignupModal);
 
   // Login modal
   $('btn-close-login').addEventListener('click', closeModals);
@@ -104,16 +105,19 @@ function setupAuthListeners() {
       return;
     }
 
+    closeModals();
     load();
     showApp();
     setupAppListeners();
+    initAllListeners();
     if (S.user.name && S.user.topic) {
       updateStreak(); updateDashboard();
       const lastScreen = S.ui.currentScreen || 'dashboard';
       showScreen(lastScreen);
       startNotificationScheduler();
     } else {
-      goToStep(0);
+      showScreen('tree');
+      setTimeout(() => $('tree-topic-input')?.focus(), 100);
     }
   });
 
@@ -161,9 +165,12 @@ function setupAuthListeners() {
     S.user.level = grade;
     save();
 
+    closeModals();
     showApp();
     setupAppListeners();
-    goToStep(0);
+    initAllListeners();
+    showScreen('tree');
+    setTimeout(() => $('tree-topic-input')?.focus(), 100);
   });
 }
 
@@ -641,7 +648,8 @@ function showScreen(name) {
     const el = $(`screen-${s}`);
     if (el) el.classList.toggle('hidden', s !== name);
   });
-  document.querySelectorAll('.nav-btn').forEach(btn => {
+  // Update sidebar nav active state
+  document.querySelectorAll('.nav-item:not(.logout)').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.screen === name);
   });
   // Smart Continuation: Remember which screen user is on
@@ -1501,50 +1509,23 @@ function init() {
 
   // User is logged in - show app
   showApp();
+  setupAppListeners();
+  initAllListeners();
 
   if (S.user.name && S.user.topic) {
     updateStreak(); updateDashboard();
-    // Smart Continuation: Resume from last screen
     const lastScreen = S.ui.currentScreen || 'dashboard';
     showScreen(lastScreen);
     startNotificationScheduler();
   } else {
-    goToStep(0);
+    showScreen('tree');
+    setTimeout(() => $('tree-topic-input')?.focus(), 100);
   }
+}
 
-  setupAppListeners();
-
-  /* Setup */
-  $('btn-setup-next').addEventListener('click', setupNext);
-  $('btn-setup-back').addEventListener('click', () => goToStep(setupStep - 1));
-  ['setup-name','setup-topic'].forEach(id => {
-    $(id)?.addEventListener('keydown', e => { if (e.key === 'Enter') setupNext(); });
-  });
-  initLevelCards($('step-2'));
-
-  /* Bottom nav */
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const s = btn.dataset.screen;
-      showScreen(s);
-      if (s === 'progress') renderProgressWall();
-      if (s === 'settings') loadSettings();
-      if (s === 'tree') {
-        if (S.learning.nodes.length > 0) {
-          $('tree-topic-input').value = S.user.topic;
-          renderTree(); show('tree-output'); hide('tree-empty'); hide('tree-loading');
-          tx('tree-main-topic', S.user.topic.toUpperCase());
-        } else {
-          hide('tree-output'); show('tree-empty');
-          $('tree-empty').querySelector('.empty-title').textContent = 'Enter any topic above';
-          $('tree-empty').querySelector('.empty-sub').textContent   = 'AI detects every prerequisite and builds your personalised path';
-        }
-      }
-    });
-  });
-
+function initAllListeners() {
   /* Dashboard */
-  $('btn-start-learning').addEventListener('click', () => {
+  $('btn-start-learning')?.addEventListener('click', () => {
     if (!S.learning.nodes.length) {
       showScreen('tree');
       if (S.user.topic) $('tree-topic-input').value = S.user.topic;
@@ -1560,31 +1541,31 @@ function init() {
     }
   });
 
-  $('btn-explore-topic').addEventListener('click', () => {
+  $('btn-explore-topic')?.addEventListener('click', () => {
     showScreen('tree'); $('tree-topic-input').value = ''; $('tree-topic-input').focus();
   });
 
   /* Tree */
-  $('btn-generate-tree').addEventListener('click', generateTree);
-  $('tree-topic-input').addEventListener('keydown', e => { if (e.key === 'Enter') generateTree(); });
-  $('btn-start-tree').addEventListener('click', () => {
+  $('btn-generate-tree')?.addEventListener('click', generateTree);
+  $('tree-topic-input')?.addEventListener('keydown', e => { if (e.key === 'Enter') generateTree(); });
+  $('btn-start-tree')?.addEventListener('click', () => {
     const first = S.learning.nodes.findIndex(n => n.status === 'available' || n.status === 'current');
     if (first >= 0) startNode(first);
   });
 
   /* Diagnostic */
-  $('btn-diag-continue').addEventListener('click', () => {
+  $('btn-diag-continue')?.addEventListener('click', () => {
     const node = S.learning.nodes[S.learning.currentNodeIdx];
     if (diagCorrect) advanceNode();
     else goStory(node.title, false);
   });
 
   /* Story */
-  $('btn-go-quiz').addEventListener('click', () => {
+  $('btn-go-quiz')?.addEventListener('click', () => {
     saveNotes();
     goQuiz(S.learning.nodes[S.learning.currentNodeIdx].title);
   });
-  $('btn-voice-read').addEventListener('click', () => {
+  $('btn-voice-read')?.addEventListener('click', () => {
     const text = $('story-text').textContent;
     speakStory(text);
   });
@@ -1592,24 +1573,20 @@ function init() {
   $('story-notes-input')?.addEventListener('blur', saveNotes);
 
   /* Quiz */
-  $('btn-quiz-next').addEventListener('click', nextQuizQ);
+  $('btn-quiz-next')?.addEventListener('click', nextQuizQ);
 
   /* Settings */
-  $('btn-save-key').addEventListener('click', saveApiKey);
+  $('btn-save-key')?.addEventListener('click', saveApiKey);
   $('api-key-input')?.addEventListener('keydown', e => { if (e.key === 'Enter') saveApiKey(); });
   $('btn-save-time')?.addEventListener('click', saveReminderTime);
   $('btn-enable-notif')?.addEventListener('click', enableNotifications);
   $('btn-test-notif')?.addEventListener('click', sendTestNotification);
-
-  $('btn-edit-profile').addEventListener('click', () => {
+  $('btn-edit-profile')?.addEventListener('click', () => {
     $('edit-form').classList.toggle('hidden');
     if (!$('edit-form').classList.contains('hidden')) loadSettings();
   });
-  $('btn-save-profile').addEventListener('click', saveProfile);
-  $('btn-logout').addEventListener('click', logout);
-  $('btn-settings-tree').addEventListener('click', () => showScreen('tree'));
-  $('btn-settings-progress').addEventListener('click', () => { renderProgressWall(); showScreen('progress'); });
-  $('btn-change-start-time').addEventListener('click', showChangeStartTimeModal);
+  $('btn-save-profile')?.addEventListener('click', saveProfile);
+  $('btn-change-start-time')?.addEventListener('click', showChangeStartTimeModal);
   initLevelCards($('edit-level-grid'));
 }
 
