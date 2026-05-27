@@ -1362,6 +1362,74 @@ input[type="text"]::placeholder { color: var(--dimmer); }
 .mastered-meta { font-size: 11px; color: var(--dim); margin-top: 2px; }
 .mastered-score { font-size: 16px; font-weight: 700; color: var(--green); flex-shrink: 0; }
 
+/* ── SPACED REPETITION ───────────────────────────── */
+.review-banner {
+  background: rgba(176,96,255,0.08);
+  border: 1.5px solid rgba(176,96,255,0.35);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.review-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--purple);
+}
+
+.review-banner-text span {
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.review-due-badge {
+  display: inline-block;
+  background: rgba(176,96,255,0.15);
+  color: var(--purple);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+
+.review-next {
+  font-size: 10px;
+  color: var(--dimmer);
+  margin-top: 4px;
+}
+
+.btn-review {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--dim);
+  font-size: 11px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+
+.btn-review:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-review.due {
+  border-color: var(--purple);
+  color: var(--purple);
+  background: rgba(176,96,255,0.08);
+}
+
+.btn-review.due:hover {
+  background: rgba(176,96,255,0.18);
+  box-shadow: 0 0 10px rgba(176,96,255,0.3);
+}
+
 /* ── SETTINGS ────────────────────────────────────── */
 .profile-card {
   display: flex;

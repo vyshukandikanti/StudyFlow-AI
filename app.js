@@ -641,6 +641,58 @@ function parseJSON(text) {
 ════════════════════════════════════════════════════ */
 const ALL_SCREENS = ['dashboard','tree','diagnostic','story','quiz','progress','analytics','settings'];
 
+/* ════════════════════════════════════════════════════
+   SPACED REPETITION HELPERS
+════════════════════════════════════════════════════ */
+function calculateNextReview(score) {
+  const days = score === 3 ? 7 : score === 2 ? 3 : 1;
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function getDueTopics() {
+  const today = todayStr();
+  return (S.progress.mastered || [])
+    .map((m, i) => ({ ...m, _idx: i }))
+    .filter(m => !m.nextReviewDate || m.nextReviewDate <= today);
+}
+
+function startRevision(masteredIdx) {
+  const entry = S.progress.mastered[masteredIdx];
+  if (!entry) return;
+  S.quiz.isRevision    = true;
+  S.quiz.revisionIdx   = masteredIdx;
+  showScreen('quiz');
+  tx('quiz-topic', entry.topic);
+  hide('quiz-time');
+  S.quiz.node      = entry.topic;
+  S.quiz.currentQ  = 0;
+  S.quiz.answers   = [];
+  hide('quiz-result');
+  show('quiz-loading');
+  hide('quiz-question-wrap');
+  renderQuizDots();
+  generateQuizQuestions(entry.topic);
+}
+
+function saveRevision() {
+  const score = S.quiz.answers.filter(Boolean).length;
+  const idx   = S.quiz.revisionIdx;
+  if (idx >= 0 && idx < S.progress.mastered.length) {
+    const entry = S.progress.mastered[idx];
+    if (!entry.revisions) entry.revisions = [];
+    entry.revisions.push({ date: new Date().toLocaleDateString(), score: `${score} / 3` });
+    entry.nextReviewDate     = calculateNextReview(score);
+    entry.lastRevisionScore  = `${score} / 3`;
+  }
+  S.quiz.isRevision  = false;
+  S.quiz.revisionIdx = -1;
+  logActivityToday(); updateStreak(); save();
+  showScreen('progress');
+  renderProgressWall();
+}
+
 function showScreen(name) {
   ALL_SCREENS.forEach(s => {
     const el = $(`screen-${s}`);
@@ -1211,6 +1263,29 @@ function showQuizResult() {
   const score = S.quiz.answers.filter(Boolean).length;
   const node  = S.quiz.node;
 
+  // ── REVISION MODE ──────────────────────────────
+  if (S.quiz.isRevision) {
+    const entry    = S.progress.mastered[S.quiz.revisionIdx];
+    const prevScore = parseInt(entry?.score) || 0;
+    const improved  = score > prevScore;
+    const same      = score === prevScore;
+    const nextDays  = score === 3 ? 7 : score === 2 ? 3 : 1;
+    tx('result-emoji', score === 3 ? '🎯' : improved ? '📈' : same ? '🔄' : '📉');
+    tx('result-title', score === 3 ? 'Perfect Revision!' : improved ? 'Improved!' : same ? 'Same Score' : 'Needs More Work');
+    tx('result-score', `${score} / 3`);
+    $('result-score').className = `result-score ${score===3?'neon-green':score===2?'neon-blue':'neon-orange'}`;
+    tx('result-desc', `Previous: ${prevScore}/3 → Now: ${score}/3 · Next review in ${nextDays} day${nextDays>1?'s':''}`);
+    $('btn-result-action').textContent = '✓ Done — Back to Topics';
+    $('btn-result-action').onclick = saveRevision;
+    const bl = $('result-breakdown'); bl.innerHTML = '';
+    S.quiz.questions.forEach((q, i) => {
+      const item = document.createElement('div'); item.className = 'breakdown-item';
+      item.innerHTML = `<span>${S.quiz.answers[i] ? '✅' : '❌'}</span><span style="flex:1;font-size:12px">${q.question?.slice(0,60)}...</span>`;
+      bl.appendChild(item);
+    });
+    return;
+  }
+
   tx('result-score', `${score} / 3`);
 
   if (score === 3) {
@@ -1262,7 +1337,9 @@ function advanceNode() {
     parentTopic: S.user.topic,
     date: new Date().toLocaleDateString(),
     score: `${actualScore} / 3`,
-    icon: topicIcon(S.user.topic)
+    icon: topicIcon(S.user.topic),
+    nextReviewDate: calculateNextReview(actualScore),
+    revisions: []
   });
 
   const next = idx + 1;
@@ -1440,6 +1517,19 @@ function renderProgressWall() {
   hide(empty);
   wall.innerHTML = '';
 
+  // ── Due for Review banner ───────────────────────
+  const due = getDueTopics();
+  if (due.length > 0) {
+    const banner = document.createElement('div');
+    banner.className = 'review-banner';
+    banner.innerHTML = `
+      <div class="review-banner-text">
+        🔁 <strong>${due.length} topic${due.length>1?'s':''} due for review today!</strong>
+        <span>Revise to strengthen your memory</span>
+      </div>`;
+    wall.appendChild(banner);
+  }
+
   // Add action buttons at top
   const actionDiv = document.createElement('div');
   actionDiv.className = 'progress-action-section';
@@ -1448,28 +1538,35 @@ function renderProgressWall() {
     <button class="btn btn-ghost" id="btn-download-wall">📸 Download</button>`;
   wall.appendChild(actionDiv);
 
-  [...list].reverse().forEach(item => {
+  [...list].reverse().forEach((item, revIdx) => {
+    const realIdx   = list.length - 1 - revIdx;
+    const today     = todayStr();
+    const isDue     = !item.nextReviewDate || item.nextReviewDate <= today;
+    const revCount  = (item.revisions || []).length;
     const card = document.createElement('div');
     card.className = 'mastered-card';
     card.innerHTML = `
       <div class="mastered-icon">${item.icon || '🎯'}</div>
       <div class="mastered-info">
         <div class="mastered-topic">${item.topic}</div>
-        <div class="mastered-meta">${item.parentTopic} · ${item.date}</div>
+        <div class="mastered-meta">${item.parentTopic} · ${item.date}${revCount > 0 ? ` · 🔁 ${revCount} revision${revCount>1?'s':''}` : ''}</div>
+        ${isDue ? '<div class="review-due-badge">📅 Review Due</div>' : `<div class="review-next">Next review: ${item.nextReviewDate}</div>`}
       </div>
-      <div class="mastered-score neon-green">${item.score}</div>`;
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <div class="mastered-score neon-green">${item.score}</div>
+        <button class="btn-review ${isDue ? 'due' : ''}" data-idx="${realIdx}">🔁 Review</button>
+      </div>`;
     wall.appendChild(card);
   });
 
   // Attach event listeners
-  const shareBtn = $('btn-share-wall');
-  const downloadBtn = $('btn-download-wall');
-  if (shareBtn) {
-    shareBtn.addEventListener('click', shareProgressWall);
-  }
-  if (downloadBtn) {
-    downloadBtn.addEventListener('click', downloadProgressWallImage);
-  }
+  $('btn-share-wall')?.addEventListener('click', shareProgressWall);
+  $('btn-download-wall')?.addEventListener('click', downloadProgressWallImage);
+
+  // Review buttons
+  wall.querySelectorAll('.btn-review').forEach(btn => {
+    btn.addEventListener('click', () => startRevision(parseInt(btn.dataset.idx)));
+  });
 }
 
 /* ════════════════════════════════════════════════════
