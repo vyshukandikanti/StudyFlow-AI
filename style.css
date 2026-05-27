@@ -488,6 +488,29 @@ input[type="text"]::placeholder { color: var(--dimmer); }
 .node-desc { font-size: 11px; color: var(--dim); margin-top: 2px; }
 .node-time { font-size: 10px; color: var(--accent); margin-top: 4px; font-weight: 500; }
 
+.node-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.node-share-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--accent);
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all .2s;
+}
+
+.node-share-btn:hover {
+  background: rgba(0,198,255,0.1);
+  box-shadow: 0 0 8px rgba(0,198,255,0.3);
+}
+
 .node-badge {
   font-size: 9px;
   letter-spacing: 1px;
@@ -716,6 +739,10 @@ input[type="text"]::placeholder { color: var(--dimmer); }
 .progress-stats-row .stat-card { flex: 1; }
 
 #progress-wall { display: flex; flex-direction: column; gap: 8px; }
+
+.progress-share-section {
+  margin-bottom: 4px;
+}
 
 .mastered-card {
   display: flex;

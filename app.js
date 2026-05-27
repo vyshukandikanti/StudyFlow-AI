@@ -225,6 +225,27 @@ function stopVoice() {
   updateVoiceButton();
 }
 
+/* ════════════════════════════════════════════════════
+   SHARING
+════════════════════════════════════════════════════ */
+function shareTopicWhatsApp(topicTitle, nodeName) {
+  const message = `Hey! I'm learning "${nodeName}" as part of "${topicTitle}" on StudyFlow AI. Join me! 📚`;
+  const encodedMsg = encodeURIComponent(message);
+  const waLink = `https://wa.me/?text=${encodedMsg}`;
+  window.open(waLink, '_blank');
+}
+
+function shareProgressWall() {
+  const done = S.learning.nodes.filter(n => n.status === 'done').length;
+  const total = S.learning.nodes.length || 1;
+  const pct = S.learning.nodes.length ? Math.round((done / total) * 100) : 0;
+  const streak = S.progress.streak || 0;
+  const message = `I'm learning on StudyFlow AI! 🚀\nTopic: ${S.user.topic}\n✓ ${done}/${total} concepts mastered\n🔥 Streak: ${streak} days\n📈 Progress: ${pct}%`;
+  const encodedMsg = encodeURIComponent(message);
+  const waLink = `https://wa.me/?text=${encodedMsg}`;
+  window.open(waLink, '_blank');
+}
+
 function updateVoiceButton() {
   const btn = $('btn-voice-read');
   if (!btn) return;
@@ -634,9 +655,19 @@ function renderTree() {
         <div class="node-desc">${node.desc}</div>
         <div class="node-time">${timeDisplay}</div>
       </div>
-      <div class="node-badge ${node.status}">${badges[node.status] || ''}</div>`;
+      <div class="node-actions">
+        <button class="node-share-btn" data-idx="${idx}" title="Share on WhatsApp">💬</button>
+        <div class="node-badge ${node.status}">${badges[node.status] || ''}</div>
+      </div>`;
     if (node.status === 'available' || node.status === 'current')
       div.addEventListener('click', () => startNode(idx));
+
+    // Share button
+    div.querySelector('.node-share-btn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      shareTopicWhatsApp(S.user.topic, node.title);
+    });
+
     container.appendChild(div);
   });
 }
@@ -1049,6 +1080,13 @@ function renderProgressWall() {
   if (!list.length) { wall.innerHTML = ''; show(empty); return; }
   hide(empty);
   wall.innerHTML = '';
+
+  // Add share button at top
+  const shareDiv = document.createElement('div');
+  shareDiv.className = 'progress-share-section';
+  shareDiv.innerHTML = `<button class="btn btn-ghost full-btn" id="btn-share-wall">💬 Share Progress</button>`;
+  wall.appendChild(shareDiv);
+
   [...list].reverse().forEach(item => {
     const card = document.createElement('div');
     card.className = 'mastered-card';
@@ -1061,6 +1099,12 @@ function renderProgressWall() {
       <div class="mastered-score neon-green">${item.score}</div>`;
     wall.appendChild(card);
   });
+
+  // Attach event listener to share button
+  const shareBtn = $('btn-share-wall');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', shareProgressWall);
+  }
 }
 
 /* ════════════════════════════════════════════════════
