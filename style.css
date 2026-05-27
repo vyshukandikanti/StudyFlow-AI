@@ -740,8 +740,14 @@ input[type="text"]::placeholder { color: var(--dimmer); }
 
 #progress-wall { display: flex; flex-direction: column; gap: 8px; }
 
-.progress-share-section {
+.progress-action-section {
+  display: flex;
+  gap: 8px;
   margin-bottom: 4px;
+}
+
+.progress-action-section .btn {
+  flex: 1;
 }
 
 .mastered-card {

@@ -246,6 +246,31 @@ function shareProgressWall() {
   window.open(waLink, '_blank');
 }
 
+async function downloadProgressWallImage() {
+  const element = $('progress-wall');
+  if (!element || !element.children.length) {
+    alert('Nothing to download yet. Complete some topics first!');
+    return;
+  }
+
+  try {
+    const canvas = await html2canvas(element, {
+      backgroundColor: '#080C14',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true
+    });
+
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = `StudyFlow-Progress-${new Date().toISOString().split('T')[0]}.png`;
+    link.click();
+  } catch (error) {
+    alert('📸 Error capturing image. Try again!');
+    console.error('Screenshot error:', error);
+  }
+}
+
 function updateVoiceButton() {
   const btn = $('btn-voice-read');
   if (!btn) return;
@@ -1081,11 +1106,13 @@ function renderProgressWall() {
   hide(empty);
   wall.innerHTML = '';
 
-  // Add share button at top
-  const shareDiv = document.createElement('div');
-  shareDiv.className = 'progress-share-section';
-  shareDiv.innerHTML = `<button class="btn btn-ghost full-btn" id="btn-share-wall">💬 Share Progress</button>`;
-  wall.appendChild(shareDiv);
+  // Add action buttons at top
+  const actionDiv = document.createElement('div');
+  actionDiv.className = 'progress-action-section';
+  actionDiv.innerHTML = `
+    <button class="btn btn-ghost" id="btn-share-wall">💬 Share</button>
+    <button class="btn btn-ghost" id="btn-download-wall">📸 Download</button>`;
+  wall.appendChild(actionDiv);
 
   [...list].reverse().forEach(item => {
     const card = document.createElement('div');
@@ -1100,10 +1127,14 @@ function renderProgressWall() {
     wall.appendChild(card);
   });
 
-  // Attach event listener to share button
+  // Attach event listeners
   const shareBtn = $('btn-share-wall');
+  const downloadBtn = $('btn-download-wall');
   if (shareBtn) {
     shareBtn.addEventListener('click', shareProgressWall);
+  }
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', downloadProgressWallImage);
   }
 }
 
