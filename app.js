@@ -271,6 +271,23 @@ async function downloadProgressWallImage() {
   }
 }
 
+function saveNotes() {
+  const idx = S.learning.currentNodeIdx;
+  const notesTA = $('story-notes-input');
+  if (notesTA && idx < S.learning.nodes.length) {
+    S.learning.nodes[idx].notes = notesTA.value;
+    save();
+  }
+}
+
+function loadNotes() {
+  const idx = S.learning.currentNodeIdx;
+  const notesTA = $('story-notes-input');
+  if (notesTA && idx < S.learning.nodes.length) {
+    notesTA.value = S.learning.nodes[idx].notes || '';
+  }
+}
+
 function updateVoiceButton() {
   const btn = $('btn-voice-read');
   if (!btn) return;
@@ -611,7 +628,8 @@ Rules: 5-8 nodes, ordered prerequisite basics → main topic → advanced applic
       return {
         id: i, title: n.title || `Step ${i+1}`, desc: n.desc || '',
         status: i === 0 ? 'available' : 'locked',
-        estTime: estTime
+        estTime: estTime,
+        notes: ''
       };
     });
     S.learning.currentNodeIdx = 0;
@@ -847,6 +865,10 @@ async function goStory(nodeName, different) {
     // Show ONLY estimated time (no "Complete by")
     tx('story-time', `⏱️ ${node.estTime} mins`);
   }
+
+  // Load any existing notes for this topic
+  loadNotes();
+
   hide('story-content'); show('story-loading');
 
   const audMap = { class7:'12-year-old', class10:'15-year-old', class12:'17-year-old', engineering:'engineering student', curious:'curious adult' };
@@ -1355,6 +1377,7 @@ function init() {
 
   /* Story */
   $('btn-go-quiz').addEventListener('click', () => {
+    saveNotes();
     goQuiz(S.learning.nodes[S.learning.currentNodeIdx].title);
   });
   $('btn-voice-read').addEventListener('click', () => {
@@ -1362,6 +1385,7 @@ function init() {
     speakStory(text);
   });
   $('btn-voice-stop')?.addEventListener('click', stopVoice);
+  $('story-notes-input')?.addEventListener('blur', saveNotes);
 
   /* Quiz */
   $('btn-quiz-next').addEventListener('click', nextQuizQ);

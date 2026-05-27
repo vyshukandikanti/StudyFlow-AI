@@ -619,6 +619,42 @@ input[type="text"]::placeholder { color: var(--dimmer); }
   flex: 1;
 }
 
+.notes-section {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.notes-label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--dim);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.notes-input {
+  width: 100%;
+  min-height: 80px;
+  background: rgba(0,198,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.notes-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(0,198,255,0.2);
+}
+
 .yt-section {
   background: rgba(255,0,0,0.05);
   border: 1px solid rgba(255,0,0,0.2);
