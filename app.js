@@ -393,17 +393,25 @@ function updateDashboard() {
       const cur = nodes[S.learning.currentNodeIdx] || nodes[0];
       const estTime = cur.estTime || 20;
 
-      // Calculate completion time based on actual completion times when available
-      let lastCompletionTime = S.learning.startTime ? new Date(S.learning.startTime) : new Date();
+      // Find the base time for current topic (= last completed topic's actual time, or session start)
+      let baseTime = S.learning.startTime ? new Date(S.learning.startTime) : new Date();
       for (let i = 0; i < S.learning.currentNodeIdx; i++) {
         if (nodes[i].actualCompletionTime) {
-          lastCompletionTime = new Date(nodes[i].actualCompletionTime);
-        } else {
-          lastCompletionTime = new Date(lastCompletionTime.getTime() + (nodes[i].estTime || 20) * 60000);
+          baseTime = new Date(nodes[i].actualCompletionTime);
+        } else if (nodes[i].status === 'done') {
+          // If marked done but no actual time, estimate it
+          baseTime = new Date(baseTime.getTime() + (nodes[i].estTime || 20) * 60000);
         }
       }
-      const nextCompletion = new Date(lastCompletionTime.getTime() + estTime * 60000);
-      const completionTime = formatTime(nextCompletion);
+
+      // Calculate completion time for current topic
+      let completionTime;
+      if (cur.status === 'done' && cur.actualCompletionTime) {
+        completionTime = formatTime(new Date(cur.actualCompletionTime));
+      } else {
+        const estimatedCompletion = new Date(baseTime.getTime() + estTime * 60000);
+        completionTime = formatTime(estimatedCompletion);
+      }
 
       // Different display for done vs current/available
       let timeDisplay = '';
@@ -495,27 +503,28 @@ function renderTree() {
   const icons  = { done:'✅', current:'▶', available:'📖', locked:'🔒' };
   const badges = { done:'DONE', current:'IN PROGRESS', available:'START', locked:'LOCKED' };
 
-  // Calculate completion times based on ACTUAL completion times when available
-  let lastCompletionTime = S.learning.startTime ? new Date(S.learning.startTime) : new Date();
+  // Start from the session start time
+  let baseTime = S.learning.startTime ? new Date(S.learning.startTime) : new Date();
 
   S.learning.nodes.forEach((node, idx) => {
     const div = document.createElement('div');
     div.className = `tree-node ${node.status}`;
     const estTime = node.estTime || 20;
 
+    // Determine the reference time for this topic's completion
     let completionTime;
 
     if (node.status === 'done' && node.actualCompletionTime) {
-      // Use actual completion time if available
+      // This topic was actually completed - use REAL completion time
       completionTime = formatTime(new Date(node.actualCompletionTime));
-      lastCompletionTime = new Date(node.actualCompletionTime);
+      // Next topic's base time is this topic's actual completion time
+      baseTime = new Date(node.actualCompletionTime);
     } else {
-      // Calculate estimated completion time from last actual (or start) time
-      const nextCompletion = new Date(lastCompletionTime.getTime() + estTime * 60000);
-      completionTime = formatTime(nextCompletion);
-      if (node.status === 'done') {
-        lastCompletionTime = nextCompletion;
-      }
+      // This topic hasn't been done yet - calculate estimated completion
+      // = baseTime (previous actual completion or session start) + est time
+      const estimatedCompletion = new Date(baseTime.getTime() + estTime * 60000);
+      completionTime = formatTime(estimatedCompletion);
+      // Don't change baseTime for non-done topics (they haven't been completed yet)
     }
 
     // Different display for DONE vs other statuses
