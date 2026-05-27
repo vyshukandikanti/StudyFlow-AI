@@ -1,8 +1,7 @@
 'use strict';
 
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_URL = 'https://studyflow-proxy.vyshukandikanti2007.workers.dev';
 const GROQ_MODEL = 'llama-3.1-8b-instant';
-function getApiKey() { return localStorage.getItem('sf_apikey') || ''; }
 
 /* ════════════════════════════════════════════════════
    AUTH SYSTEM
@@ -606,11 +605,9 @@ function checkAndFireDailyNotification() {
    GEMINI API
 ════════════════════════════════════════════════════ */
 async function callGemini(prompt) {
-  const key = getApiKey();
-  if (!key) throw new Error('No API key set — go to Profile tab and paste your Groq key (gsk_...)');
   const res = await fetch(GROQ_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: GROQ_MODEL,
       messages: [{ role: 'user', content: prompt }],

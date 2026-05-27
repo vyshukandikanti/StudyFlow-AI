@@ -1239,6 +1239,42 @@ input[type="text"]::placeholder { color: var(--dimmer); }
 
 .logout-hint { font-size: 11px; color: var(--dimmer); text-align: center; margin-top: 8px; }
 
+/* ── AI ENGINE STATUS CARD ───────────────────────── */
+.ai-engine-card {
+  background: rgba(0,255,136,0.04);
+  border: 1px solid rgba(0,255,136,0.25);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.ai-engine-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-engine-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(0,255,136,0.7);
+  flex-shrink: 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.ai-engine-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.ai-engine-status {
+  font-size: 11px;
+  color: var(--green);
+}
+
 /* ── SETTINGS SECTIONS ───────────────────────────── */
 .settings-section {
   margin-bottom: 8px;
