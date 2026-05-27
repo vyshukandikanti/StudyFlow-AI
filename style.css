@@ -284,9 +284,11 @@ body::after {
 
 /* ══ APP CONTAINER ════════════════════════════════════ */
 .app-container {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
   height: 100vh;
   width: 100%;
+  overflow: hidden;
 }
 
 /* ══ SIDEBAR ════════════════════════════════════════════ */
@@ -426,15 +428,19 @@ body::after {
 /* ══ MAIN CONTENT ═════════════════════════════════════ */
 .main-content {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  height: 100vh;
 }
 
 .screen-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 20px;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ── SETUP SCREEN ─────────────────────────────────── */

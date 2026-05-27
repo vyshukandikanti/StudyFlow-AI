@@ -1,5 +1,5 @@
 // StudyFlow AI — Service Worker
-const CACHE_NAME = 'studyflow-v2';
+const CACHE_NAME = 'studyflow-v3';
 const FILES_TO_CACHE = [
   './',
   './index.html',
@@ -33,9 +33,10 @@ self.addEventListener('fetch', event => {
   // Don't cache Groq API calls
   if (event.request.url.includes('api.groq.com')) return;
 
-  // Always fetch from network for: HTML, app.js, manifest, service-worker
+  // Always fetch from network for: HTML, app.js, CSS, manifest, service-worker
   if (event.request.url.includes('index.html') ||
       event.request.url.includes('app.js') ||
+      event.request.url.includes('style.css') ||
       event.request.url.includes('manifest.json') ||
       event.request.url.endsWith('/')) {
     event.respondWith(
