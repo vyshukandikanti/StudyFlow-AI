@@ -182,6 +182,7 @@ function setupAppListeners() {
       btn.classList.add('active');
       showScreen(screen);
       if (screen === 'progress') renderProgressWall();
+      if (screen === 'analytics') renderAnalytics();
       if (screen === 'settings') loadSettings();
       if (screen === 'tree') {
         if (S.learning.nodes.length > 0) {
@@ -638,7 +639,7 @@ function parseJSON(text) {
 /* ════════════════════════════════════════════════════
    SCREEN NAVIGATION
 ════════════════════════════════════════════════════ */
-const ALL_SCREENS = ['dashboard','tree','diagnostic','story','quiz','progress','settings'];
+const ALL_SCREENS = ['dashboard','tree','diagnostic','story','quiz','progress','analytics','settings'];
 
 function showScreen(name) {
   ALL_SCREENS.forEach(s => {
@@ -1311,6 +1312,118 @@ function renderQuestion(prefix, data, onAnswer) {
 /* ════════════════════════════════════════════════════
    PROGRESS WALL
 ════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════
+   ANALYTICS DASHBOARD
+════════════════════════════════════════════════════ */
+function renderAnalytics() {
+  const mastered = S.progress.mastered || [];
+  const nodes    = S.learning.nodes || [];
+  const streak   = S.progress.streak || 0;
+
+  // ── Overview cards ──────────────────────────────
+  tx('an-total-topics', mastered.length);
+  tx('an-streak-val', `${streak} 🔥`);
+
+  // Average quiz score
+  if (mastered.length > 0) {
+    const total = mastered.reduce((s, m) => s + (parseInt(m.score) || 0), 0);
+    const pct   = Math.round((total / (mastered.length * 3)) * 100);
+    tx('an-avg-score', `${pct}%`);
+  } else {
+    tx('an-avg-score', '—');
+  }
+
+  // Total study time from done nodes
+  const doneNodes  = nodes.filter(n => n.status === 'done');
+  const totalMins  = doneNodes.reduce((s, n) => s + (n.estTime || 20), 0);
+  const h = Math.floor(totalMins / 60), m = totalMins % 60;
+  tx('an-study-time', h > 0 ? `${h}h ${m}m` : `${totalMins}m`);
+
+  // ── 7-Day Activity bars ─────────────────────────
+  const barsEl = $('an-activity-bars');
+  if (barsEl) {
+    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    let html = '';
+    for (let i = 6; i >= 0; i--) {
+      const d       = new Date(Date.now() - i * 86400000);
+      const dateStr = d.toISOString().slice(0, 10);
+      const active  = (S.progress.activityLog || []).some(l => l.date === dateStr);
+      html += `<div class="an-bar-item">
+        <div class="an-bar ${active ? 'active' : ''}"></div>
+        <div class="an-bar-day">${dayNames[d.getDay()]}</div>
+      </div>`;
+    }
+    barsEl.innerHTML = html;
+  }
+
+  // ── Score distribution ──────────────────────────
+  const scoreEl = $('an-score-dist');
+  if (scoreEl) {
+    if (mastered.length === 0) {
+      scoreEl.innerHTML = '<div class="an-empty">Complete some quizzes to see your breakdown</div>';
+    } else {
+      const counts = { 3:0, 2:0, 1:0, 0:0 };
+      mastered.forEach(m => { const s = parseInt(m.score) || 0; counts[s]++; });
+      const rows = [
+        { label:'🎯 Perfect', score:3, color:'var(--green)' },
+        { label:'✓ Good',     score:2, color:'var(--accent)' },
+        { label:'⚡ Pass',    score:1, color:'var(--orange)' },
+        { label:'✗ Retry',   score:0, color:'var(--red)' }
+      ];
+      scoreEl.innerHTML = rows.map(r => {
+        const cnt = counts[r.score] || 0;
+        const pct = Math.round((cnt / mastered.length) * 100);
+        return `<div class="an-score-row">
+          <div class="an-score-label">${r.label}</div>
+          <div class="an-score-bar-wrap">
+            <div class="an-score-bar" style="width:${pct}%;background:${r.color}"></div>
+          </div>
+          <div class="an-score-count">${cnt}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── Weak topics (score < 3/3) ───────────────────
+  const weakEl      = $('an-weak-topics');
+  const weakSection = $('an-weak-section');
+  if (weakEl && weakSection) {
+    const weak = mastered.filter(m => (parseInt(m.score) || 0) < 3);
+    if (weak.length === 0) {
+      weakSection.style.display = 'none';
+    } else {
+      weakSection.style.display = '';
+      weakEl.innerHTML = weak.map(m => `
+        <div class="an-weak-item">
+          <span class="an-weak-icon">${m.icon || '📚'}</span>
+          <span class="an-weak-name">${m.topic}</span>
+          <span class="an-weak-score neon-red">${m.score}</span>
+        </div>`).join('');
+    }
+  }
+
+  // ── Recent completions timeline ─────────────────
+  const tlEl = $('an-timeline');
+  if (tlEl) {
+    if (mastered.length === 0) {
+      tlEl.innerHTML = '<div class="an-empty">No topics completed yet — start learning!</div>';
+    } else {
+      tlEl.innerHTML = [...mastered].reverse().slice(0, 6).map(m => {
+        const s   = parseInt(m.score) || 0;
+        const col = s === 3 ? 'var(--green)' : s === 2 ? 'var(--accent)' : 'var(--orange)';
+        return `<div class="an-timeline-item">
+          <div class="an-tl-dot" style="background:${col}"></div>
+          <div class="an-tl-info">
+            <div class="an-tl-topic">${m.icon || '📚'} ${m.topic}</div>
+            <div class="an-tl-meta">${m.date} · ${m.parentTopic || ''}</div>
+          </div>
+          <div class="an-tl-score" style="color:${col}">${m.score}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
 function renderProgressWall() {
   const wall   = $('progress-wall');
   const empty  = $('progress-empty');

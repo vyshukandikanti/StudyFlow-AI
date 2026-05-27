@@ -127,7 +127,7 @@
 
     <nav class="sidebar-nav">
       <button class="nav-item active" data-screen="dashboard">
-        <span class="nav-icon">📊</span>
+        <span class="nav-icon">🏠</span>
         <span class="nav-label">Dashboard</span>
       </button>
       <button class="nav-item" data-screen="tree">
@@ -137,6 +137,10 @@
       <button class="nav-item" data-screen="progress">
         <span class="nav-icon">🏆</span>
         <span class="nav-label">Topics</span>
+      </button>
+      <button class="nav-item" data-screen="analytics">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Analytics</span>
       </button>
       <button class="nav-item" data-screen="settings">
         <span class="nav-icon">⚙️</span>
@@ -306,6 +310,55 @@
         <div class="empty-icon">🌟</div>
         <div class="empty-title">Your Mastery Wall</div>
         <div class="empty-sub">Complete concepts to see them here. Each one is a step towards mastery!</div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div id="screen-analytics" class="screen-content hidden">
+      <div class="section-label">⬡ ANALYTICS DASHBOARD</div>
+
+      <!-- Overview Cards -->
+      <div class="an-overview">
+        <div class="an-stat-card">
+          <div class="an-stat-value neon-green" id="an-total-topics">0</div>
+          <div class="an-stat-label">Topics Mastered</div>
+        </div>
+        <div class="an-stat-card">
+          <div class="an-stat-value neon-blue" id="an-avg-score">—</div>
+          <div class="an-stat-label">Avg Quiz Score</div>
+        </div>
+        <div class="an-stat-card">
+          <div class="an-stat-value neon-purple" id="an-study-time">0m</div>
+          <div class="an-stat-label">Study Time</div>
+        </div>
+        <div class="an-stat-card">
+          <div class="an-stat-value neon-orange" id="an-streak-val">0 🔥</div>
+          <div class="an-stat-label">Day Streak</div>
+        </div>
+      </div>
+
+      <!-- 7-Day Activity -->
+      <div class="an-card">
+        <div class="an-card-title">📅 7-DAY ACTIVITY</div>
+        <div class="an-activity-bars" id="an-activity-bars"></div>
+      </div>
+
+      <!-- Score Distribution -->
+      <div class="an-card">
+        <div class="an-card-title">🎯 QUIZ SCORE BREAKDOWN</div>
+        <div id="an-score-dist"></div>
+      </div>
+
+      <!-- Needs Revision -->
+      <div class="an-card" id="an-weak-section">
+        <div class="an-card-title">⚠️ NEEDS REVISION</div>
+        <div id="an-weak-topics"></div>
+      </div>
+
+      <!-- Recent Completions Timeline -->
+      <div class="an-card">
+        <div class="an-card-title">📈 RECENT COMPLETIONS</div>
+        <div id="an-timeline"></div>
       </div>
     </div>
 
