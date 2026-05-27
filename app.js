@@ -12,7 +12,13 @@ let S = {
   learning: { nodes: [], currentNodeIdx: 0, startTime: null },
   progress: { mastered: [], streak: 0, lastActive: null, lastNotifDate: null, activityLog: [] },
   quiz:     { questions: [], currentQ: 0, answers: [], node: '' },
-  ui:       { currentScreen: 'dashboard' }
+  ui:       { currentScreen: 'dashboard', voiceEnabled: false }
+};
+
+// Voice Mode (Web Speech API)
+let voiceState = {
+  speaking: false,
+  utterance: null
 };
 
 function save() { localStorage.setItem('sf2', JSON.stringify(S)); }
@@ -171,6 +177,58 @@ function formatTime(dateObj) {
   const ampm = h >= 12 ? 'PM' : 'AM';
   h = h % 12 || 12;
   return `${h}:${m} ${ampm}`;
+}
+
+/* ════════════════════════════════════════════════════
+   VOICE MODE
+════════════════════════════════════════════════════ */
+function speakStory(text) {
+  if (!('speechSynthesis' in window)) {
+    alert('🔊 Voice not supported in this browser');
+    return;
+  }
+
+  if (voiceState.speaking) {
+    window.speechSynthesis.pause();
+    voiceState.speaking = false;
+    updateVoiceButton();
+    return;
+  }
+
+  if (voiceState.utterance) {
+    window.speechSynthesis.resume();
+    voiceState.speaking = true;
+    updateVoiceButton();
+    return;
+  }
+
+  voiceState.utterance = new SpeechSynthesisUtterance(text);
+  voiceState.utterance.rate = 0.95;
+  voiceState.utterance.pitch = 1;
+  voiceState.utterance.volume = 1;
+
+  voiceState.utterance.onend = () => {
+    voiceState.speaking = false;
+    voiceState.utterance = null;
+    updateVoiceButton();
+  };
+
+  window.speechSynthesis.speak(voiceState.utterance);
+  voiceState.speaking = true;
+  updateVoiceButton();
+}
+
+function stopVoice() {
+  window.speechSynthesis.cancel();
+  voiceState.speaking = false;
+  voiceState.utterance = null;
+  updateVoiceButton();
+}
+
+function updateVoiceButton() {
+  const btn = $('btn-voice-read');
+  if (!btn) return;
+  btn.textContent = voiceState.speaking ? '⏸ Pause' : '🔊 Read Aloud';
 }
 
 /* ════════════════════════════════════════════════════
@@ -1224,6 +1282,11 @@ function init() {
   $('btn-go-quiz').addEventListener('click', () => {
     goQuiz(S.learning.nodes[S.learning.currentNodeIdx].title);
   });
+  $('btn-voice-read').addEventListener('click', () => {
+    const text = $('story-text').textContent;
+    speakStory(text);
+  });
+  $('btn-voice-stop')?.addEventListener('click', stopVoice);
 
   /* Quiz */
   $('btn-quiz-next').addEventListener('click', nextQuizQ);

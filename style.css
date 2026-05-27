@@ -586,6 +586,16 @@ input[type="text"]::placeholder { color: var(--dimmer); }
   letter-spacing: 0.2px;
 }
 
+.voice-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.voice-controls .btn {
+  flex: 1;
+}
+
 .yt-section {
   background: rgba(255,0,0,0.05);
   border: 1px solid rgba(255,0,0,0.2);
