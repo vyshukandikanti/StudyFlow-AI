@@ -507,7 +507,6 @@ function renderTree() {
 
   // Start from the session start time
   let baseTime = S.learning.startTime ? new Date(S.learning.startTime) : new Date();
-  console.log('renderTree: Starting with baseTime =', formatTime(baseTime), '(session start)');
 
   S.learning.nodes.forEach((node, idx) => {
     const div = document.createElement('div');
@@ -520,7 +519,6 @@ function renderTree() {
     if (node.status === 'done' && node.actualCompletionTime) {
       // This topic was actually completed - use REAL completion time
       completionTime = formatTime(new Date(node.actualCompletionTime));
-      console.log(`  Node ${idx} (${node.title}): DONE - Completed at ${completionTime}`);
       // Next topic's base time is this topic's actual completion time
       baseTime = new Date(node.actualCompletionTime);
     } else {
@@ -528,7 +526,6 @@ function renderTree() {
       // = baseTime (previous actual completion or session start) + est time
       const estimatedCompletion = new Date(baseTime.getTime() + estTime * 60000);
       completionTime = formatTime(estimatedCompletion);
-      console.log(`  Node ${idx} (${node.title}): ${node.status} - Complete by ${completionTime} (from baseTime ${formatTime(baseTime)} + ${estTime}m)`);
       // Don't change baseTime for non-done topics (they haven't been completed yet)
     }
 
@@ -631,7 +628,7 @@ function showChangeStartTimeModal() {
   modal.classList.remove('hidden');
   modal.style.display = 'flex';
 
-  // Handle confirm (use arrow function to ensure 'this' doesn't break)
+  // Handle confirm
   btn.onclick = () => {
     const timeStr = input.value;
     if (!timeStr) {
@@ -644,17 +641,14 @@ function showChangeStartTimeModal() {
     const newStartTime = new Date();
     newStartTime.setHours(parseInt(hours), parseInt(mins), 0, 0);
 
-    console.log('Changing start time from', S.learning.startTime, 'to', newStartTime.toISOString());
     S.learning.startTime = newStartTime.toISOString();
     save();
-    console.log('Start time saved. S.learning.startTime is now:', S.learning.startTime);
 
     // Hide modal
     modal.classList.add('hidden');
     modal.style.display = 'none';
 
-    // Always refresh both displays
-    console.log('Refreshing tree and dashboard displays...');
+    // Refresh display
     renderTree();
     updateDashboard();
 
@@ -892,7 +886,6 @@ function advanceNode() {
 
   // Record actual completion time (when quiz was completed)
   node.actualCompletionTime = new Date().toISOString();
-  console.log(`✅ Topic "${node.title}" completed at ${formatTime(new Date(node.actualCompletionTime))}`);
 
   const actualScore = S.quiz.answers.filter(Boolean).length;
   S.progress.mastered.push({
