@@ -10,7 +10,7 @@ function getApiKey() { return localStorage.getItem('sf_apikey') || ''; }
 let S = {
   user:     { name: '', topic: '', level: 'class10', studyTime: '19:00' },
   learning: { nodes: [], currentNodeIdx: 0, startTime: null },
-  progress: { mastered: [], streak: 0, lastActive: null, lastNotifDate: null },
+  progress: { mastered: [], streak: 0, lastActive: null, lastNotifDate: null, activityLog: [] },
   quiz:     { questions: [], currentQ: 0, answers: [], node: '' },
   ui:       { currentScreen: 'dashboard' }
 };
@@ -75,6 +75,35 @@ function nextBadge(s) {
   if (s < 30) return `🏅 ${30 - s} days`;
   if (s < 90) return `👑 ${90 - s} days`;
   return '🏆 Legend';
+}
+
+function logActivityToday() {
+  const today = todayStr();
+  if (!S.progress.activityLog) S.progress.activityLog = [];
+
+  // Check if today's activity is already logged
+  const todayLog = S.progress.activityLog.find(log => log.date === today);
+  if (!todayLog) {
+    S.progress.activityLog.push({ date: today, active: true });
+  }
+
+  // Keep only last 7 days
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+  S.progress.activityLog = S.progress.activityLog.filter(log => log.date >= sevenDaysAgo);
+
+  save();
+}
+
+function getActivityStrip() {
+  if (!S.progress.activityLog) S.progress.activityLog = [];
+
+  const strip = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+    const active = S.progress.activityLog.some(log => log.date === date);
+    strip.push(active ? '✓' : '─');
+  }
+  return strip.join(' ');
 }
 
 /* ════════════════════════════════════════════════════
@@ -380,6 +409,7 @@ function updateDashboard() {
   tx('stat-streak',   `${streak} 🔥`);
   tx('stat-mastered', S.progress.mastered.length);
   tx('stat-badge', nextBadge(streak));
+  tx('activity-strip', getActivityStrip());
 
   const nodes  = S.learning.nodes;
   const total  = nodes.length || 1;
@@ -886,6 +916,9 @@ function advanceNode() {
 
   // Record actual completion time (when quiz was completed)
   node.actualCompletionTime = new Date().toISOString();
+
+  // Log activity for today
+  logActivityToday();
 
   const actualScore = S.quiz.answers.filter(Boolean).length;
   S.progress.mastered.push({

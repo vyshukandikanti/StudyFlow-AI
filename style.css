@@ -394,6 +394,18 @@ input[type="text"]::placeholder { color: var(--dimmer); }
 .stat-label { font-size: 10px; letter-spacing: 1.5px; color: var(--dim); margin-bottom: 6px; }
 .stat-value { font-size: 20px; font-weight: 700; }
 
+.activity-section {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.activity-label { font-size: 10px; letter-spacing: 1.5px; color: var(--dim); margin-bottom: 8px; }
+.activity-strip { font-size: 18px; font-weight: 700; letter-spacing: 4px; color: var(--accent); text-shadow: 0 0 10px rgba(0,198,255,.5); font-family: monospace; }
+
 .neon-orange { color: var(--orange); text-shadow: 0 0 10px rgba(255,124,0,.5); }
 .neon-green  { color: var(--green);  text-shadow: 0 0 10px rgba(0,255,136,.5); }
 .neon-blue   { color: var(--accent); text-shadow: 0 0 10px rgba(0,198,255,.5); }
