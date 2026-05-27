@@ -13,309 +13,381 @@
 </head>
 <body>
 
-<!-- ══ SCREEN: SETUP (first time) ══ -->
-<div id="screen-setup" class="screen">
-  <div class="auth-wrap">
-    <div class="logo-row">
-      <div class="logo-svg">📚</div>
-      <div>
-        <div class="app-name">STUDYFLOW AI</div>
-        <div class="app-tagline">Learn · Build · Master</div>
-      </div>
+<!-- ══ LANDING PAGE (Before Login) ══ -->
+<div id="screen-landing" class="landing-screen">
+  <div class="landing-container">
+    <!-- Logo & Name -->
+    <div class="landing-logo-section">
+      <div class="landing-logo">📚</div>
+      <h1 class="landing-title">StudyFlow AI</h1>
     </div>
 
-    <div class="auth-title">Let's Get Started</div>
-    <div class="auth-sub">SETUP YOUR PROFILE — TAKES 20 SECONDS</div>
-
-    <div class="step-bar">
-      <div class="step-dot active" id="dot-0"></div>
-      <div class="step-line"></div>
-      <div class="step-dot" id="dot-1"></div>
-      <div class="step-line"></div>
-      <div class="step-dot" id="dot-2"></div>
-      <div class="step-line"></div>
-      <div class="step-dot" id="dot-3"></div>
+    <!-- Big Quote -->
+    <div class="landing-quote">
+      <p>Stop Struggling With Concepts,<br>Start Mastering Them</p>
     </div>
 
-    <!-- Step 0: Name -->
-    <div class="setup-step" id="step-0">
-      <div class="field-label">YOUR NAME</div>
-      <input type="text" id="setup-name" placeholder="e.g. Vyshu" autocomplete="off"/>
+    <!-- Auth Buttons (Top Right) -->
+    <div class="landing-auth-buttons">
+      <button class="btn btn-ghost" id="btn-landing-login">Log In</button>
+      <button class="btn btn-neon" id="btn-landing-signup">Sign Up</button>
     </div>
 
-    <!-- Step 1: Topic -->
-    <div class="setup-step hidden" id="step-1">
-      <div class="field-label">WHAT DO YOU WANT TO LEARN?</div>
-      <input type="text" id="setup-topic" placeholder="e.g. Python, Photosynthesis, Calculus"/>
-      <div class="field-hint">💡 Keep it short — 1 to 3 words. AI builds the full path.</div>
+    <!-- Decorative Element -->
+    <div class="landing-decoration"></div>
+  </div>
+</div>
+
+<!-- ══ LOGIN MODAL ══ -->
+<div id="modal-login" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-close" id="btn-close-login">&times;</div>
+    <div class="modal-header">Welcome Back</div>
+
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="your@email.com" autocomplete="off"/>
     </div>
 
-    <!-- Step 2: Level -->
-    <div class="setup-step hidden" id="step-2">
-      <div class="field-label">YOUR LEVEL</div>
-      <div class="level-grid">
-        <div class="level-card" data-level="class7">🎒 Class 7</div>
-        <div class="level-card active" data-level="class10">📝 Class 10</div>
-        <div class="level-card" data-level="class12">🎯 Class 12</div>
-        <div class="level-card" data-level="engineering">🔬 Engineering</div>
-        <div class="level-card" data-level="curious">💡 Just Curious</div>
-      </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••"/>
     </div>
 
-    <!-- Step 3: Daily Study Time -->
-    <div class="setup-step hidden" id="step-3">
-      <div class="field-label">DAILY STUDY TIME</div>
-      <input type="time" id="setup-time" value="19:00" class="time-input"/>
-      <div class="field-hint">📱 We'll send a daily reminder at this time. You can change it anytime in Profile.</div>
-    </div>
+    <div class="form-error" id="login-error"></div>
 
-    <div class="auth-error" id="setup-error"></div>
+    <button class="btn btn-neon full-btn" id="btn-login-submit">Log In →</button>
 
-    <div class="btn-row">
-      <button class="btn btn-ghost" id="btn-setup-back" style="display:none">← Back</button>
-      <button class="btn btn-neon" id="btn-setup-next">Continue →</button>
+    <div class="form-footer">
+      Don't have an account? <span id="link-to-signup" class="link">Sign Up</span>
     </div>
   </div>
 </div>
 
-<!-- ══ MAIN APP ══ -->
-<div id="app" class="hidden">
+<!-- ══ SIGNUP MODAL ══ -->
+<div id="modal-signup" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-close" id="btn-close-signup">&times;</div>
+    <div class="modal-header">Create Your Account</div>
 
-  <!-- HEADER -->
-  <div class="header">
-    <div class="header-left">
-      <div class="header-logo">📚</div>
-      <div>
-        <div class="app-name-sm">STUDYFLOW AI</div>
-        <div class="greeting-text" id="greeting-text">Good Evening, Vyshu 👋</div>
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="signup-name" placeholder="e.g. Vyshu" autocomplete="off"/>
+    </div>
+
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="signup-email" placeholder="your@email.com" autocomplete="off"/>
+    </div>
+
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="signup-password" placeholder="At least 6 characters"/>
+    </div>
+
+    <div class="form-group">
+      <label>Your Grade</label>
+      <div class="grade-grid">
+        <div class="grade-option" data-grade="class7">🎒 Class 7</div>
+        <div class="grade-option" data-grade="class10">📝 Class 10</div>
+        <div class="grade-option" data-grade="class12">🎯 Class 12</div>
+        <div class="grade-option" data-grade="engineering">🔬 Engineering</div>
+        <div class="grade-option" data-grade="curious">💡 Just Curious</div>
       </div>
-    </div>
-    <div class="streak-badge" id="header-streak">🔥 0</div>
-  </div>
-
-  <!-- DASHBOARD -->
-  <div id="screen-dashboard" class="screen-content">
-    <div class="section-label">⬡ TODAY'S LESSON</div>
-    <div class="topic-card">
-      <div class="topic-card-icon">🎯</div>
-      <div class="topic-card-info">
-        <div class="topic-name" id="today-topic">—</div>
-        <div class="topic-sub" id="today-sub"></div>
-        <div class="topic-step" id="today-step"></div>
-        <div class="topic-time" id="today-time"></div>
-      </div>
-    </div>
-    <div class="mini-progress-track"><div class="mini-progress-fill" id="dash-progress-fill"></div></div>
-    <div class="progress-label" id="dash-progress-label"></div>
-    <button class="btn btn-neon full-btn" id="btn-start-learning">▶ Build Learning Path</button>
-
-    <div class="neon-divider"></div>
-
-    <div class="section-label">⬡ SYSTEM STATUS</div>
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">Streak</div><div class="stat-value neon-orange" id="stat-streak">0 🔥</div></div>
-      <div class="stat-card"><div class="stat-label">Mastered</div><div class="stat-value neon-green" id="stat-mastered">0</div></div>
-      <div class="stat-card"><div class="stat-label">Progress</div><div class="stat-value neon-blue" id="stat-progress">0%</div></div>
-      <div class="stat-card"><div class="stat-label">Next Badge</div><div class="stat-value neon-purple" id="stat-badge">⚡ 7 days</div></div>
+      <input type="hidden" id="signup-grade"/>
     </div>
 
-    <div class="activity-section">
-      <div class="activity-label">7-Day Activity</div>
-      <div class="activity-strip" id="activity-strip">✓ ✓ ─ ✓ ✓ ✓ ─</div>
-    </div>
+    <div class="form-error" id="signup-error"></div>
 
-    <div class="neon-divider"></div>
-    <button class="btn btn-ghost full-btn" id="btn-explore-topic">+ Explore New Topic</button>
-  </div>
+    <button class="btn btn-neon full-btn" id="btn-signup-submit">Create Account →</button>
 
-  <!-- LEARNING PATH / TREE -->
-  <div id="screen-tree" class="screen-content hidden">
-    <div class="section-label">⬡ LEARNING PATH BUILDER</div>
-    <div class="field-label">TOPIC TO LEARN</div>
-    <div class="input-row">
-      <input type="text" id="tree-topic-input" placeholder="e.g. Python, Photosynthesis..."/>
-      <button class="btn btn-neon icon-btn" id="btn-generate-tree">🌳</button>
-    </div>
-    <div class="ai-status hidden" id="tree-loading"><div class="pulse-dot"></div> AI is mapping your learning path...</div>
-
-    <div id="tree-output" class="hidden">
-      <div class="neon-divider"></div>
-      <div class="section-label">⬡ YOUR PATH TO: <span id="tree-main-topic" class="neon-text"></span></div>
-      <div id="tree-container"></div>
-      <button class="btn btn-start full-btn" id="btn-start-tree">▶ Start Learning</button>
-    </div>
-
-    <div id="tree-empty" class="empty-state">
-      <div class="empty-icon">🌱</div>
-      <div class="empty-title">Enter any topic above</div>
-      <div class="empty-sub">AI detects every prerequisite and builds your personalised path</div>
+    <div class="form-footer">
+      Already have an account? <span id="link-to-login" class="link">Log In</span>
     </div>
   </div>
+</div>
 
-  <!-- DIAGNOSTIC -->
-  <div id="screen-diagnostic" class="screen-content hidden">
-    <div class="pill-badge" id="diag-badge">Quick Check</div>
-    <div class="screen-topic" id="diag-topic"></div>
-    <div class="screen-sub">Do you already know this?</div>
-    <div class="ai-status" id="diag-loading"><div class="pulse-dot"></div> Generating question...</div>
-    <div id="diag-question-wrap" class="hidden">
-      <div class="question-card" id="diag-question"></div>
-      <div class="options-list" id="diag-options"></div>
-      <div class="explanation-card hidden" id="diag-explanation"></div>
-      <button class="btn btn-neon full-btn hidden" id="btn-diag-continue">Continue →</button>
+<!-- ══ MAIN APP (After Login) ══ -->
+<div id="app" class="app-container hidden">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">📚</div>
+      <div class="sidebar-title">StudyFlow</div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar" id="sidebar-avatar">S</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebar-name">Student</div>
+        <div class="user-grade" id="sidebar-grade">Class 10</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-screen="dashboard">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Dashboard</span>
+      </button>
+      <button class="nav-item" data-screen="tree">
+        <span class="nav-icon">🌳</span>
+        <span class="nav-label">Learn</span>
+      </button>
+      <button class="nav-item" data-screen="progress">
+        <span class="nav-icon">🏆</span>
+        <span class="nav-label">Topics</span>
+      </button>
+      <button class="nav-item" data-screen="settings">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">Settings</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="nav-item logout" id="btn-logout">
+        <span class="nav-icon">🚪</span>
+        <span class="nav-label">Logout</span>
+      </button>
     </div>
   </div>
 
-  <!-- STORY -->
-  <div id="screen-story" class="screen-content hidden">
-    <div class="pill-badge" id="story-badge">📖 Story Time</div>
-    <div class="screen-topic" id="story-topic"></div>
-    <div class="screen-time" id="story-time"></div>
-    <div class="ai-status" id="story-loading"><div class="pulse-dot"></div> Writing your story...</div>
-    <div id="story-content" class="hidden">
-      <div class="story-text" id="story-text"></div>
-      <div class="voice-controls">
-        <button class="btn btn-ghost" id="btn-voice-read">🔊 Read Aloud</button>
-        <button class="btn btn-ghost hidden" id="btn-voice-stop">⏹ Stop</button>
-      </div>
-      <div class="notes-section">
-        <div class="notes-label">📝 My Notes</div>
-        <textarea id="story-notes-input" class="notes-input" placeholder="Write your notes here..."></textarea>
-      </div>
-      <div class="yt-section">
-        <div class="yt-label">🎥 WATCH VIDEO EXPLANATION</div>
-        <div class="yt-btns">
-          <a class="yt-dur-btn" id="yt-medium" href="#" target="_blank">📺 Short<span>5–15 min</span></a>
-          <a class="yt-dur-btn" id="yt-long"   href="#" target="_blank">🎓 Long<span>15+ min</span></a>
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-left">
+        <div class="header-logo">📚</div>
+        <div>
+          <div class="app-name-sm">STUDYFLOW AI</div>
+          <div class="greeting-text" id="greeting-text">Good Evening, Student 👋</div>
         </div>
       </div>
+      <div class="streak-badge" id="header-streak">🔥 0</div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="screen-dashboard" class="screen-content">
+      <div class="section-label">⬡ TODAY'S LESSON</div>
+      <div class="topic-card">
+        <div class="topic-card-icon">🎯</div>
+        <div class="topic-card-info">
+          <div class="topic-name" id="today-topic">—</div>
+          <div class="topic-sub" id="today-sub"></div>
+          <div class="topic-step" id="today-step"></div>
+          <div class="topic-time" id="today-time"></div>
+        </div>
+      </div>
+      <div class="mini-progress-track"><div class="mini-progress-fill" id="dash-progress-fill"></div></div>
+      <div class="progress-label" id="dash-progress-label"></div>
+      <button class="btn btn-neon full-btn" id="btn-start-learning">▶ Build Learning Path</button>
+
       <div class="neon-divider"></div>
-      <div class="ready-box">
-        <div class="ready-title">Ready to test your understanding?</div>
-        <div class="ready-sub">3 quick questions · Take your time</div>
+
+      <div class="section-label">⬡ SYSTEM STATUS</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Streak</div><div class="stat-value neon-orange" id="stat-streak">0 🔥</div></div>
+        <div class="stat-card"><div class="stat-label">Mastered</div><div class="stat-value neon-green" id="stat-mastered">0</div></div>
+        <div class="stat-card"><div class="stat-label">Progress</div><div class="stat-value neon-blue" id="stat-progress">0%</div></div>
+        <div class="stat-card"><div class="stat-label">Next Badge</div><div class="stat-value neon-purple" id="stat-badge">⚡ 7 days</div></div>
       </div>
-      <button class="btn btn-neon full-btn" id="btn-go-quiz">Take Quiz →</button>
-    </div>
-  </div>
 
-  <!-- QUIZ -->
-  <div id="screen-quiz" class="screen-content hidden">
-    <div class="quiz-progress-dots" id="quiz-dots"></div>
-    <div class="quiz-meta" id="quiz-meta">Question 1 of 3</div>
-    <div class="quiz-topic" id="quiz-topic"></div>
-    <div class="screen-time" id="quiz-time"></div>
-    <div class="ai-status" id="quiz-loading"><div class="pulse-dot"></div> Generating quiz...</div>
-    <div id="quiz-question-wrap" class="hidden">
-      <div class="question-card" id="quiz-question"></div>
-      <div class="options-list" id="quiz-options"></div>
-      <div class="explanation-card hidden" id="quiz-explanation"></div>
-      <button class="btn btn-neon full-btn hidden" id="btn-quiz-next">Next →</button>
-    </div>
-    <div id="quiz-result" class="hidden">
-      <div class="result-emoji" id="result-emoji">🎉</div>
-      <div class="result-title" id="result-title">Perfect Score!</div>
-      <div class="result-score" id="result-score">3 / 3</div>
-      <div class="result-desc" id="result-desc"></div>
-      <div class="breakdown-list" id="result-breakdown"></div>
-      <button class="btn btn-neon full-btn" id="btn-result-action">Next Topic →</button>
-    </div>
-  </div>
-
-  <!-- PROGRESS WALL -->
-  <div id="screen-progress" class="screen-content hidden">
-    <div class="section-label">⬡ TOPICS MASTERED</div>
-    <div class="progress-stats-row">
-      <div class="stat-card"><div class="stat-value neon-green" id="pw-mastered">0</div><div class="stat-label">Topics</div></div>
-      <div class="stat-card"><div class="stat-value neon-orange" id="pw-streak">0 🔥</div><div class="stat-label">Streak</div></div>
-      <div class="stat-card"><div class="stat-value neon-blue" id="pw-pct">0%</div><div class="stat-label">Done</div></div>
-    </div>
-    <div id="progress-wall"></div>
-    <div id="progress-empty" class="empty-state hidden">
-      <div class="empty-icon">🌱</div>
-      <div class="empty-title">Your wall is empty</div>
-      <div class="empty-sub">Complete your first topic to see it here!</div>
-    </div>
-  </div>
-
-  <!-- SETTINGS -->
-  <div id="screen-settings" class="screen-content hidden">
-    <div class="section-label">⬡ PROFILE</div>
-    <div class="profile-card">
-      <div class="profile-avatar" id="profile-avatar">V</div>
-      <div class="profile-info">
-        <div class="profile-name" id="profile-name">Vyshu</div>
-        <div class="profile-topic" id="profile-topic">Python</div>
-        <div class="profile-level" id="profile-level">Class 10</div>
+      <div class="activity-section">
+        <div class="activity-label">7-Day Activity</div>
+        <div class="activity-strip" id="activity-strip">✓ ✓ ─ ✓ ✓ ✓ ─</div>
       </div>
-      <button class="btn-small" id="btn-edit-profile">✏️ Edit</button>
-    </div>
 
-    <div id="edit-form" class="hidden">
       <div class="neon-divider"></div>
-      <div class="field-label">NAME</div>
-      <input type="text" id="edit-name"/>
-      <div class="field-label">TOPIC</div>
-      <input type="text" id="edit-topic" placeholder="e.g. Python"/>
-      <div class="field-label">LEVEL</div>
-      <div class="level-grid" id="edit-level-grid">
-        <div class="level-card" data-level="class7">🎒 Class 7</div>
-        <div class="level-card active" data-level="class10">📝 Class 10</div>
-        <div class="level-card" data-level="class12">🎯 Class 12</div>
-        <div class="level-card" data-level="engineering">🔬 Engineering</div>
-        <div class="level-card" data-level="curious">💡 Just Curious</div>
+      <button class="btn btn-ghost full-btn" id="btn-explore-topic">+ Explore New Topic</button>
+    </div>
+
+    <!-- LEARNING PATH / TREE -->
+    <div id="screen-tree" class="screen-content hidden">
+      <div class="section-label">⬡ LEARNING PATH BUILDER</div>
+      <div class="field-label">TOPIC TO LEARN</div>
+      <div class="input-row">
+        <input type="text" id="tree-topic-input" placeholder="e.g. Python, Photosynthesis..."/>
+        <button class="btn btn-neon icon-btn" id="btn-generate-tree">🌳</button>
       </div>
-      <button class="btn btn-neon full-btn" id="btn-save-profile">✓ Save Changes</button>
+      <div class="ai-status hidden" id="tree-loading"><div class="pulse-dot"></div> AI is mapping your learning path...</div>
+
+      <div id="tree-output" class="hidden">
+        <div class="neon-divider"></div>
+        <div class="section-label">⬡ YOUR PATH TO: <span id="tree-main-topic" class="neon-text"></span></div>
+        <div id="tree-container"></div>
+        <button class="btn btn-start full-btn" id="btn-start-tree">▶ Start Learning</button>
+      </div>
+
+      <div id="tree-empty" class="empty-state">
+        <div class="empty-icon">🌱</div>
+        <div class="empty-title">Enter any topic above</div>
+        <div class="empty-sub">AI detects every prerequisite and builds your personalised path</div>
+      </div>
     </div>
 
-    <div class="neon-divider"></div>
-    <div class="section-label">⬡ ACTIONS</div>
-    <button class="btn btn-neon full-btn" id="btn-settings-tree">🌳 Build New Learning Path</button>
-    <button class="btn btn-ghost full-btn" style="margin-top:8px" id="btn-settings-progress">🏆 View Topics Wall</button>
-    <button class="btn btn-ghost full-btn" style="margin-top:8px" id="btn-change-start-time">🕐 Change Session Start Time</button>
-
-    <div class="neon-divider"></div>
-    <div class="section-label">⬡ DAILY REMINDER</div>
-    <div class="reminder-row">
-      <input type="time" id="reminder-time" class="time-input"/>
-      <button class="btn btn-neon icon-btn" id="btn-save-time" title="Save time">✓</button>
+    <!-- DIAGNOSTIC -->
+    <div id="screen-diagnostic" class="screen-content hidden">
+      <div class="pill-badge" id="diag-badge">📋 Quick Check</div>
+      <div class="screen-topic" id="diag-topic"></div>
+      <div class="ai-status" id="diag-loading"><div class="pulse-dot"></div> Generating question...</div>
+      <div id="diag-question-wrap" class="hidden">
+        <div class="question-card" id="diag-question"></div>
+        <div class="options-list" id="diag-options"></div>
+        <div class="explanation-card hidden" id="diag-explanation"></div>
+        <button class="btn btn-neon full-btn hidden" id="btn-diag-continue">Continue →</button>
+      </div>
     </div>
-    <button class="btn btn-ghost full-btn" id="btn-enable-notif" style="margin-top:8px">🔔 Enable Browser Notifications</button>
-    <button class="btn btn-neon full-btn" id="btn-test-notif" style="margin-top:8px">🧪 Send Test Notification Now</button>
-    <div class="api-key-status" id="notif-status"></div>
 
-    <div class="neon-divider"></div>
-    <div class="section-label">⬡ GROQ API KEY (FREE)</div>
-    <div class="api-key-row">
-      <input type="password" id="api-key-input" placeholder="Paste your gsk_... key here"/>
-      <button class="btn btn-neon icon-btn" id="btn-save-key" title="Save key">✓</button>
+    <!-- STORY -->
+    <div id="screen-story" class="screen-content hidden">
+      <div class="pill-badge" id="story-badge">📖 Story Time</div>
+      <div class="screen-topic" id="story-topic"></div>
+      <div class="screen-time" id="story-time"></div>
+      <div class="ai-status" id="story-loading"><div class="pulse-dot"></div> Writing your story...</div>
+      <div id="story-content" class="hidden">
+        <div class="story-text" id="story-text"></div>
+        <div class="voice-controls">
+          <button class="btn btn-ghost" id="btn-voice-read">🔊 Read Aloud</button>
+          <button class="btn btn-ghost hidden" id="btn-voice-stop">⏹ Stop</button>
+        </div>
+        <div class="notes-section">
+          <div class="notes-label">📝 My Notes</div>
+          <textarea id="story-notes-input" class="notes-input" placeholder="Write your notes here..."></textarea>
+        </div>
+        <div class="yt-section">
+          <div class="yt-label">🎥 WATCH VIDEO EXPLANATION</div>
+          <div class="yt-btns">
+            <a class="yt-dur-btn" id="yt-medium" href="#" target="_blank">📺 Short<span>5–15 min</span></a>
+            <a class="yt-dur-btn" id="yt-long"   href="#" target="_blank">🎓 Long<span>15+ min</span></a>
+          </div>
+        </div>
+        <div class="neon-divider"></div>
+        <div class="ready-box">
+          <div class="ready-title">Ready to test your understanding?</div>
+          <div class="ready-sub">3 quick questions · Take your time</div>
+        </div>
+        <button class="btn btn-neon full-btn" id="btn-go-quiz">Take Quiz →</button>
+      </div>
     </div>
-    <div class="field-hint" style="margin-bottom:4px">Free key (no card) → <a href="https://console.groq.com" target="_blank" class="neon-link">console.groq.com</a> → API Keys</div>
-    <div class="api-key-status" id="api-key-status"></div>
 
-    <div class="neon-divider"></div>
-    <button class="btn btn-stop full-btn" id="btn-logout">🚪 Log Out & Reset</button>
-    <div class="logout-hint">Clears all local data including your streak</div>
+    <!-- QUIZ -->
+    <div id="screen-quiz" class="screen-content hidden">
+      <div class="quiz-progress-dots" id="quiz-dots"></div>
+      <div class="quiz-meta" id="quiz-meta">Question 1 of 3</div>
+      <div class="quiz-topic" id="quiz-topic"></div>
+      <div class="screen-time" id="quiz-time"></div>
+      <div class="ai-status" id="quiz-loading"><div class="pulse-dot"></div> Generating quiz...</div>
+      <div id="quiz-question-wrap" class="hidden">
+        <div class="question-card" id="quiz-question"></div>
+        <div class="options-list" id="quiz-options"></div>
+        <div class="explanation-card hidden" id="quiz-explanation"></div>
+        <button class="btn btn-neon full-btn hidden" id="btn-quiz-next">Next →</button>
+      </div>
+      <div id="quiz-result" class="hidden">
+        <div class="result-emoji" id="result-emoji">🎉</div>
+        <div class="result-title" id="result-title">Perfect Score!</div>
+        <div class="result-score" id="result-score">3 / 3</div>
+        <div class="result-desc" id="result-desc"></div>
+        <div class="result-breakdown" id="result-breakdown"></div>
+        <button class="btn btn-neon full-btn" id="btn-result-action">Next Topic →</button>
+      </div>
+    </div>
+
+    <!-- PROGRESS WALL -->
+    <div id="screen-progress" class="screen-content hidden">
+      <div class="section-label">⬡ YOUR MASTERY WALL</div>
+      <div class="progress-stats-row">
+        <div class="stat-card"><div class="stat-label">Mastered</div><div class="stat-value neon-green" id="pw-mastered">0</div></div>
+        <div class="stat-card"><div class="stat-label">Streak</div><div class="stat-value neon-orange" id="pw-streak">0 🔥</div></div>
+        <div class="stat-card"><div class="stat-label">Progress</div><div class="stat-value neon-blue" id="pw-pct">0%</div></div>
+      </div>
+      <div id="progress-wall"></div>
+      <div id="progress-empty" class="empty-state">
+        <div class="empty-icon">🌟</div>
+        <div class="empty-title">Your Mastery Wall</div>
+        <div class="empty-sub">Complete concepts to see them here. Each one is a step towards mastery!</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="screen-settings" class="screen-content hidden">
+      <div class="section-label">⬡ SETTINGS</div>
+
+      <div class="settings-section">
+        <div class="settings-title">PROFILE</div>
+        <div class="profile-card">
+          <div class="profile-avatar" id="profile-avatar">S</div>
+          <div class="profile-info">
+            <div class="profile-name" id="profile-name">Student Name</div>
+            <div class="profile-meta" id="profile-topic">No topic set</div>
+            <div class="profile-meta" id="profile-level">Class 10</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost full-btn" id="btn-edit-profile">✏️ Edit Profile</button>
+      </div>
+
+      <div class="settings-section hidden" id="edit-form">
+        <div class="field-label">NAME</div>
+        <input type="text" id="edit-name" placeholder="Your name"/>
+        <div class="field-label">LEARNING TOPIC</div>
+        <input type="text" id="edit-topic" placeholder="e.g. Python"/>
+        <div class="field-label">YOUR LEVEL</div>
+        <div class="level-grid" id="edit-level-grid">
+          <div class="level-card" data-level="class7">🎒 Class 7</div>
+          <div class="level-card active" data-level="class10">📝 Class 10</div>
+          <div class="level-card" data-level="class12">🎯 Class 12</div>
+          <div class="level-card" data-level="engineering">🔬 Engineering</div>
+          <div class="level-card" data-level="curious">💡 Just Curious</div>
+        </div>
+        <button class="btn btn-neon full-btn" id="btn-save-profile">Save Changes</button>
+      </div>
+
+      <div class="neon-divider"></div>
+
+      <div class="settings-section">
+        <div class="settings-title">API KEY</div>
+        <div class="field-label">GROQ API KEY</div>
+        <input type="password" id="api-key-input" placeholder="gsk_..." autocomplete="off"/>
+        <div class="api-key-status" id="api-key-status">No key set</div>
+        <button class="btn btn-ghost full-btn" id="btn-save-key">Save API Key</button>
+      </div>
+
+      <div class="neon-divider"></div>
+
+      <div class="settings-section">
+        <div class="settings-title">NOTIFICATIONS</div>
+        <div class="field-label">DAILY REMINDER TIME</div>
+        <input type="time" id="reminder-time" class="time-input"/>
+        <button class="btn btn-ghost full-btn" id="btn-save-time">Save Time</button>
+        <button class="btn btn-ghost full-btn" id="btn-enable-notif">🔔 Enable Notifications</button>
+        <button class="btn btn-ghost full-btn" id="btn-test-notif">📬 Send Test</button>
+        <div class="api-key-status" id="notif-status">Notifications not enabled</div>
+      </div>
+
+      <div class="neon-divider"></div>
+
+      <div class="settings-section">
+        <div class="settings-title">SESSION</div>
+        <button class="btn btn-ghost full-btn" id="btn-change-start-time">⏰ Change Session Start Time</button>
+      </div>
+    </div>
   </div>
+</div>
 
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <button class="nav-btn active" data-screen="dashboard"><span>🏠</span><span class="nav-label">Home</span></button>
-    <button class="nav-btn" data-screen="tree"><span>🌳</span><span class="nav-label">Learn</span></button>
-    <button class="nav-btn" data-screen="progress"><span>🏆</span><span class="nav-label">Topics</span></button>
-    <button class="nav-btn" data-screen="settings"><span>⚙️</span><span class="nav-label">Profile</span></button>
-  </nav>
-
-  <!-- START TIME PICKER MODAL -->
-  <div id="start-time-modal" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000;">
-    <div style="background: #0a0e18; border: 2px solid #00C6FF; border-radius: 16px; padding: 24px; text-align: center; max-width: 300px; box-shadow: 0 0 30px rgba(0, 198, 255, 0.2);">
-      <div style="font-size: 18px; font-weight: bold; color: #00C6FF; margin-bottom: 12px;">⏰ What time are you starting?</div>
-      <input type="time" id="start-time-input" style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #00C6FF; border-radius: 8px; background: #080C14; color: #00C6FF; margin-bottom: 16px; text-align: center;" />
-      <button id="btn-confirm-start-time" style="width: 100%; padding: 12px; background: #00C6FF; color: #080C14; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">▶ Start Now</button>
-    </div>
+<!-- ══ TIME PICKER MODAL ══ -->
+<div id="start-time-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">🕐 What time are you starting?</div>
+    <input type="time" id="start-time-input" class="time-input"/>
+    <button class="btn btn-neon full-btn" id="btn-confirm-start-time">▶ Start Now</button>
   </div>
-
 </div>
 
 <script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  }
+</script>
+
 </body>
 </html>

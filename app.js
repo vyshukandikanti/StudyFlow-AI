@@ -5,6 +5,200 @@ const GROQ_MODEL = 'llama-3.1-8b-instant';
 function getApiKey() { return localStorage.getItem('sf_apikey') || ''; }
 
 /* ════════════════════════════════════════════════════
+   AUTH SYSTEM
+════════════════════════════════════════════════════ */
+const Auth = {
+  isLoggedIn() {
+    return !!localStorage.getItem('sf_user_email');
+  },
+
+  getUser() {
+    const email = localStorage.getItem('sf_user_email');
+    if (!email) return null;
+    const users = JSON.parse(localStorage.getItem('sf_users') || '[]');
+    return users.find(u => u.email === email);
+  },
+
+  signup(name, email, password, grade) {
+    let users = JSON.parse(localStorage.getItem('sf_users') || '[]');
+    if (users.some(u => u.email === email)) {
+      return { success: false, error: 'Email already registered' };
+    }
+    users.push({ name, email, password, grade });
+    localStorage.setItem('sf_users', JSON.stringify(users));
+    localStorage.setItem('sf_user_email', email);
+    return { success: true };
+  },
+
+  login(email, password) {
+    const users = JSON.parse(localStorage.getItem('sf_users') || '[]');
+    const user = users.find(u => u.email === email && u.password === password);
+    if (!user) {
+      return { success: false, error: 'Invalid email or password' };
+    }
+    localStorage.setItem('sf_user_email', email);
+    return { success: true };
+  },
+
+  logout() {
+    localStorage.removeItem('sf_user_email');
+  }
+};
+
+function showLanding() {
+  $('screen-landing').classList.remove('hidden');
+  $('app').classList.add('hidden');
+}
+
+function showApp() {
+  $('screen-landing').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  const user = Auth.getUser();
+  if (user) {
+    $('sidebar-avatar').textContent = user.name[0].toUpperCase();
+    $('sidebar-name').textContent = user.name;
+    $('sidebar-grade').textContent = { class7: 'Class 7', class10: 'Class 10', class12: 'Class 12', engineering: 'Engineering', curious: 'Just Curious' }[user.grade] || user.grade;
+    S.user.name = user.name;
+    S.user.level = user.grade;
+  }
+}
+
+function showLoginModal() {
+  $('modal-login').classList.remove('hidden');
+  $('modal-signup').classList.add('hidden');
+}
+
+function showSignupModal() {
+  $('modal-signup').classList.remove('hidden');
+  $('modal-login').classList.add('hidden');
+}
+
+function closeModals() {
+  $('modal-login').classList.add('hidden');
+  $('modal-signup').classList.add('hidden');
+}
+
+function setupAuthListeners() {
+  // Landing buttons
+  $('btn-landing-login').addEventListener('click', showLoginModal);
+  $('btn-landing-signup').addEventListener('click', showSignupModal);
+
+  // Login modal
+  $('btn-close-login').addEventListener('click', closeModals);
+  $('link-to-signup').addEventListener('click', showSignupModal);
+  $('btn-login-submit').addEventListener('click', () => {
+    const email = $('login-email').value.trim();
+    const password = $('login-password').value;
+    const error = $('login-error');
+
+    if (!email || !password) {
+      error.classList.add('show');
+      error.textContent = 'Please fill in all fields';
+      return;
+    }
+
+    const result = Auth.login(email, password);
+    if (!result.success) {
+      error.classList.add('show');
+      error.textContent = result.error;
+      return;
+    }
+
+    load();
+    showApp();
+    setupAppListeners();
+    if (S.user.name && S.user.topic) {
+      updateStreak(); updateDashboard();
+      const lastScreen = S.ui.currentScreen || 'dashboard';
+      showScreen(lastScreen);
+      startNotificationScheduler();
+    } else {
+      goToStep(0);
+    }
+  });
+
+  // Signup modal
+  $('btn-close-signup').addEventListener('click', closeModals);
+  $('link-to-login').addEventListener('click', showLoginModal);
+
+  // Grade selection in signup
+  document.querySelectorAll('.grade-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.grade-option').forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+      $('signup-grade').value = opt.dataset.grade;
+    });
+  });
+
+  $('btn-signup-submit').addEventListener('click', () => {
+    const name = $('signup-name').value.trim();
+    const email = $('signup-email').value.trim();
+    const password = $('signup-password').value;
+    const grade = $('signup-grade').value;
+    const error = $('signup-error');
+
+    if (!name || !email || !password || !grade) {
+      error.classList.add('show');
+      error.textContent = 'Please fill in all fields';
+      return;
+    }
+
+    if (password.length < 6) {
+      error.classList.add('show');
+      error.textContent = 'Password must be at least 6 characters';
+      return;
+    }
+
+    const result = Auth.signup(name, email, password, grade);
+    if (!result.success) {
+      error.classList.add('show');
+      error.textContent = result.error;
+      return;
+    }
+
+    // Initialize user data
+    S.user.name = name;
+    S.user.level = grade;
+    save();
+
+    showApp();
+    setupAppListeners();
+    goToStep(0);
+  });
+}
+
+function setupAppListeners() {
+  // Sidebar navigation
+  document.querySelectorAll('.nav-item:not(.logout)').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const screen = btn.dataset.screen;
+      document.querySelectorAll('.nav-item:not(.logout)').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      showScreen(screen);
+      if (screen === 'progress') renderProgressWall();
+      if (screen === 'settings') loadSettings();
+      if (screen === 'tree') {
+        if (S.learning.nodes.length > 0) {
+          $('tree-topic-input').value = S.user.topic;
+          renderTree(); show('tree-output'); hide('tree-empty'); hide('tree-loading');
+          tx('tree-main-topic', S.user.topic.toUpperCase());
+        } else {
+          hide('tree-output'); show('tree-empty');
+        }
+      }
+    });
+  });
+
+  // Logout button
+  $('btn-logout').addEventListener('click', () => {
+    if (confirm('Are you sure you want to logout?')) {
+      Auth.logout();
+      location.reload();
+    }
+  });
+}
+
+/* ════════════════════════════════════════════════════
    STATE
 ════════════════════════════════════════════════════ */
 let S = {
@@ -1298,17 +1492,27 @@ function init() {
   load();
   registerServiceWorker();
 
+  // Check if user is logged in
+  if (!Auth.isLoggedIn()) {
+    showLanding();
+    setupAuthListeners();
+    return;
+  }
+
+  // User is logged in - show app
+  showApp();
+
   if (S.user.name && S.user.topic) {
-    hide('screen-setup'); show('app');
     updateStreak(); updateDashboard();
     // Smart Continuation: Resume from last screen
     const lastScreen = S.ui.currentScreen || 'dashboard';
     showScreen(lastScreen);
     startNotificationScheduler();
   } else {
-    show('screen-setup'); hide('app');
     goToStep(0);
   }
+
+  setupAppListeners();
 
   /* Setup */
   $('btn-setup-next').addEventListener('click', setupNext);
