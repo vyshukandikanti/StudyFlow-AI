@@ -706,13 +706,8 @@ async function goStory(nodeName, different) {
   tx('story-topic', nodeName);
   const node = S.learning.nodes[S.learning.currentNodeIdx];
   if (node?.estTime) {
-    // Calculate cumulative time up to and including this topic
-    let cumulativeTime = 0;
-    for (let i = 0; i <= S.learning.currentNodeIdx; i++) {
-      cumulativeTime += S.learning.nodes[i].estTime || 20;
-    }
-    const completionTime = formatCompletionTimeFromStart(cumulativeTime);
-    tx('story-time', `⏱️ Est time: ${node.estTime} mins | Complete by ${completionTime}`);
+    // Show ONLY estimated time (no "Complete by")
+    tx('story-time', `⏱️ ${node.estTime} mins`);
   }
   hide('story-content'); show('story-loading');
 
@@ -773,13 +768,8 @@ async function goQuiz(nodeName) {
   tx('quiz-topic', nodeName);
   const node = S.learning.nodes[S.learning.currentNodeIdx];
   if (node?.estTime) {
-    // Calculate cumulative time up to and including this topic
-    let cumulativeTime = 0;
-    for (let i = 0; i <= S.learning.currentNodeIdx; i++) {
-      cumulativeTime += S.learning.nodes[i].estTime || 20;
-    }
-    const completionTime = formatCompletionTimeFromStart(cumulativeTime);
-    tx('quiz-time', `⏱️ Est time: ${node.estTime} mins | Complete by ${completionTime}`);
+    // Show ONLY estimated time (no "Complete by")
+    tx('quiz-time', `⏱️ ${node.estTime} mins`);
   }
   S.quiz.node = nodeName;
   S.quiz.currentQ = 0;
