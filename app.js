@@ -45,13 +45,13 @@ const Auth = {
 };
 
 function showLanding() {
-  $('screen-landing').classList.remove('hidden');
-  $('app').classList.add('hidden');
+  $('screen-landing').style.cssText = 'display:flex !important';
+  $('app').style.cssText = 'display:none !important';
 }
 
 function showApp() {
-  $('screen-landing').classList.add('hidden');
-  $('app').classList.remove('hidden');
+  $('screen-landing').style.cssText = 'display:none !important';
+  $('app').style.cssText = 'display:flex !important';
   const user = Auth.getUser();
   if (user) {
     $('sidebar-avatar').textContent = user.name[0].toUpperCase();

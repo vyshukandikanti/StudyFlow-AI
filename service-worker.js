@@ -1,5 +1,5 @@
 // StudyFlow AI — Service Worker
-const CACHE_NAME = 'studyflow-v3';
+const CACHE_NAME = 'studyflow-v4';
 const FILES_TO_CACHE = [
   './',
   './index.html',
