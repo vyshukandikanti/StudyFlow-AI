@@ -27,19 +27,22 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch — always check network for HTML, cache other assets
+// Fetch — always check network for HTML and app code, cache static assets
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   // Don't cache Groq API calls
   if (event.request.url.includes('api.groq.com')) return;
 
-  // Always fetch index.html from network to get latest updates
-  if (event.request.url.includes('index.html') || event.request.url.endsWith('/')) {
+  // Always fetch from network for: HTML, app.js, manifest, service-worker
+  if (event.request.url.includes('index.html') ||
+      event.request.url.includes('app.js') ||
+      event.request.url.includes('manifest.json') ||
+      event.request.url.endsWith('/')) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
     );
   } else {
-    // Cache other assets
+    // Cache static assets (CSS, icons, etc.)
     event.respondWith(
       caches.match(event.request).then(cached => cached || fetch(event.request))
     );
