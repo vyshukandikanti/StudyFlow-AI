@@ -416,9 +416,11 @@ function updateDashboard() {
       // Different display for done vs current/available
       let timeDisplay = '';
       if (cur.status === 'done') {
-        timeDisplay = `⏱️ ${estTime} mins | Completed at ${completionTime}`;
+        // After completion: show ONLY actual completion time
+        timeDisplay = `Completed at ${completionTime}`;
       } else {
-        timeDisplay = `⏱️ ${estTime} mins | Complete by ${completionTime}`;
+        // Before completion: show ONLY estimated time
+        timeDisplay = `⏱️ ${estTime} mins`;
       }
 
       tx('today-sub', cur.title);
@@ -533,9 +535,11 @@ function renderTree() {
     // Different display for DONE vs other statuses
     let timeDisplay = '';
     if (node.status === 'done') {
-      timeDisplay = `⏱️ ${estTime} mins | Completed at ${completionTime}`;
+      // After completion: show ONLY actual completion time
+      timeDisplay = `Completed at ${completionTime}`;
     } else {
-      timeDisplay = `⏱️ ${estTime} mins | Complete by ${completionTime}`;
+      // Before completion: show ONLY estimated time
+      timeDisplay = `⏱️ ${estTime} mins`;
     }
 
     div.innerHTML = `
