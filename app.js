@@ -661,19 +661,9 @@ function getDueTopics() {
 function startRevision(masteredIdx) {
   const entry = S.progress.mastered[masteredIdx];
   if (!entry) return;
-  S.quiz.isRevision    = true;
-  S.quiz.revisionIdx   = masteredIdx;
-  showScreen('quiz');
-  tx('quiz-topic', entry.topic);
-  hide('quiz-time');
-  S.quiz.node      = entry.topic;
-  S.quiz.currentQ  = 0;
-  S.quiz.answers   = [];
-  hide('quiz-result');
-  show('quiz-loading');
-  hide('quiz-question-wrap');
-  renderQuizDots();
-  generateQuizQuestions(entry.topic);
+  S.quiz.isRevision  = true;
+  S.quiz.revisionIdx = masteredIdx;
+  goQuiz(entry.topic);
 }
 
 function saveRevision() {
@@ -1178,10 +1168,13 @@ Write ONLY the explanation text. No JSON, no headings, no bullet points, no form
 async function goQuiz(nodeName) {
   showScreen('quiz');
   tx('quiz-topic', nodeName);
-  const node = S.learning.nodes[S.learning.currentNodeIdx];
-  if (node?.estTime) {
-    // Show ONLY estimated time (no "Complete by")
-    tx('quiz-time', `⏱️ ${node.estTime} mins`);
+  if (S.quiz.isRevision) {
+    hide('quiz-time');
+  } else {
+    const node = S.learning.nodes[S.learning.currentNodeIdx];
+    if (node?.estTime) {
+      tx('quiz-time', `⏱️ ${node.estTime} mins`);
+    }
   }
   S.quiz.node = nodeName;
   S.quiz.currentQ = 0;
