@@ -8,6 +8,7 @@
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#00C6FF"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link rel="icon" type="image/svg+xml" href="icon.svg"/>
   <link rel="apple-touch-icon" href="icon.svg"/>
 </head>
@@ -364,6 +365,9 @@
         <div class="an-card-title">📈 RECENT COMPLETIONS</div>
         <div id="an-timeline"></div>
       </div>
+
+      <!-- Export PDF -->
+      <button class="btn btn-export-pdf full-btn" id="btn-export-pdf-analytics">📄 Export Progress Report PDF</button>
     </div>
 
     <!-- SETTINGS -->

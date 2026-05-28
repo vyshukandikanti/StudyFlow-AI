@@ -1649,6 +1649,301 @@ function renderAnalytics() {
       }).join('');
     }
   }
+
+  // Wire up export button if present
+  const expBtn = $('btn-export-pdf-analytics');
+  if (expBtn) { expBtn.onclick = exportProgressPDF; }
+}
+
+/* ════════════════════════════════════════════════════
+   EXPORT PROGRESS REPORT — PDF
+════════════════════════════════════════════════════ */
+function exportProgressPDF() {
+  if (typeof window.jspdf === 'undefined') {
+    showMotivation('⏳', 'Loading PDF library…', 'Please wait a moment and try again.', 3000);
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
+  const user     = Auth.getUser();
+  const mastered = S.progress.mastered || [];
+  const nodes    = S.learning.nodes    || [];
+  const streak   = S.progress.streak  || 0;
+  const actLog   = S.progress.activityLog || [];
+
+  const gradeMap = {
+    class7: 'Class 7', class10: 'Class 10', class12: 'Class 12',
+    engineering: 'Engineering', curious: 'Just Curious'
+  };
+
+  // ── Computed stats ─────────────────────────────────
+  const avgPct = mastered.length > 0
+    ? Math.round((mastered.reduce((s, m) => s + (parseInt(m.score) || 0), 0) / (mastered.length * 3)) * 100)
+    : 0;
+  const doneNodes  = nodes.filter(n => n.status === 'done');
+  const totalMins  = doneNodes.reduce((s, n) => s + (n.estTime || 20), 0);
+  const studyStr   = totalMins >= 60 ? `${Math.floor(totalMins / 60)}h ${totalMins % 60}m` : `${totalMins}m`;
+  const weak       = mastered.filter(m => (parseInt(m.score) || 0) < 3);
+  const pdfDate    = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  const studentName = user?.name || S.user.name || 'Student';
+  const grade       = gradeMap[user?.grade || S.user.level] || 'Student';
+  const topic       = S.user.topic || 'Not set';
+
+  // ── Color palette ──────────────────────────────────
+  const C = {
+    headerBg : [10,  14, 35],
+    accent   : [0, 198, 255],
+    green    : [0,  180, 100],
+    orange   : [210, 110,  0],
+    red      : [200,  50,  50],
+    purple   : [130,  80, 210],
+    white    : [255, 255, 255],
+    bodyBg   : [255, 255, 255],
+    text     : [20,  20,  45],
+    subtext  : [110, 110, 140],
+    altRow   : [245, 248, 255],
+    divider  : [220, 225, 245],
+    cardBg   : [240, 245, 255],
+    footerBg : [10,  14, 35],
+  };
+
+  const PW = 595, PH = 842, M = 40, CW = PW - M * 2;
+  let y = 0;
+
+  // ── Helpers ────────────────────────────────────────
+  function rgb(col) { doc.setFillColor(...col); }
+  function setTxt(col) { doc.setTextColor(...col); }
+  function bold(size)   { doc.setFontSize(size); doc.setFont('helvetica', 'bold'); }
+  function normal(size) { doc.setFontSize(size); doc.setFont('helvetica', 'normal'); }
+  function italic(size) { doc.setFontSize(size); doc.setFont('helvetica', 'italic'); }
+
+  function newPage() {
+    doc.addPage();
+    rgb(C.bodyBg); doc.rect(0, 0, PW, PH, 'F');
+    drawFooterPlaceholder(); // will be overwritten at end
+    y = M;
+  }
+
+  function checkBreak(needed = 24) {
+    if (y + needed > PH - 45) { newPage(); return true; }
+    return false;
+  }
+
+  function drawFooterPlaceholder() { /* filled at end */ }
+
+  function sectionTitle(title, color = C.accent) {
+    checkBreak(28);
+    bold(9.5); setTxt(color);
+    doc.text(title, M, y);
+    doc.setDrawColor(...color);
+    doc.setLineWidth(0.6);
+    doc.line(M, y + 4, M + CW, y + 4);
+    y += 15;
+    normal(9);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // PAGE 1 — START
+  // ═══════════════════════════════════════════════════
+  rgb(C.bodyBg); doc.rect(0, 0, PW, PH, 'F');
+
+  // ── Header block ────────────────────────────────
+  rgb(C.headerBg); doc.rect(0, 0, PW, 88, 'F');
+
+  bold(21); setTxt(C.accent);
+  doc.text('StudyFlow AI', M, 34);
+
+  bold(11); setTxt(C.white);
+  doc.text('LEARNING PROGRESS REPORT', M, 54);
+
+  normal(8.5); doc.setTextColor(150, 175, 200);
+  doc.text(pdfDate,        PW - M, 28, { align: 'right' });
+  doc.text('vyshukandikanti.github.io/StudyFlow-AI/', PW - M, 42, { align: 'right' });
+
+  normal(9.5); doc.setTextColor(190, 210, 230);
+  doc.text(`${studentName}  ·  ${topic}  ·  ${grade}`, M, 74);
+
+  y = 106;
+
+  // ── Stats cards ──────────────────────────────────
+  const stats = [
+    { label: 'Topics Mastered', value: mastered.length.toString(), color: C.green  },
+    { label: 'Avg Quiz Score',  value: mastered.length ? `${avgPct}%` : '—',       color: C.accent  },
+    { label: 'Day Streak',      value: `${streak}`,                                  color: C.orange  },
+    { label: 'Study Time',      value: studyStr,                                     color: C.purple  },
+  ];
+  const cw4 = (CW - 9) / 4;
+  stats.forEach((st, i) => {
+    const cx = M + i * (cw4 + 3);
+    rgb(C.cardBg); doc.roundedRect(cx, y, cw4, 52, 4, 4, 'F');
+    doc.setDrawColor(...st.color); doc.setLineWidth(1.8);
+    doc.line(cx + 6, y, cx + cw4 - 6, y); // top accent line
+    bold(17); setTxt(st.color);
+    doc.text(st.value, cx + cw4 / 2, y + 23, { align: 'center' });
+    normal(7.5); setTxt(C.subtext);
+    doc.text(st.label, cx + cw4 / 2, y + 39, { align: 'center' });
+  });
+  y += 66;
+
+  // ── Topics Mastered ──────────────────────────────
+  sectionTitle(`TOPICS MASTERED  (${mastered.length})`);
+
+  if (mastered.length === 0) {
+    italic(9); setTxt(C.subtext);
+    doc.text('No topics mastered yet — start learning!', M + 4, y);
+    y += 18;
+  } else {
+    // Column header
+    normal(8); setTxt(C.subtext);
+    doc.text('#',       M + 4,   y);
+    doc.text('TOPIC',   M + 22,  y);
+    doc.text('DATE',    M + 330, y);
+    doc.text('SCORE',   M + 420, y);
+    doc.text('RATING',  M + 470, y);
+    y += 9;
+
+    mastered.forEach((m, i) => {
+      checkBreak(20);
+      if (i % 2 === 0) { rgb(C.altRow); doc.rect(M, y - 11, CW, 19, 'F'); }
+
+      const score = parseInt(m.score) || 0;
+      const scoreCol = score === 3 ? C.green : score === 2 ? C.accent : score === 1 ? C.orange : C.red;
+      const rating   = score === 3 ? 'PERFECT' : score === 2 ? 'GOOD' : score === 1 ? 'PASS' : 'RETRY';
+      const tName    = m.topic.length > 43 ? m.topic.slice(0, 40) + '…' : m.topic;
+
+      normal(8.5); setTxt(C.subtext);
+      doc.text(`${i + 1}`, M + 4, y);
+
+      setTxt(C.text);
+      doc.text(tName, M + 22, y);
+
+      setTxt(C.subtext); normal(8);
+      doc.text(m.date || '—', M + 330, y);
+
+      bold(8.5); setTxt(scoreCol);
+      doc.text(m.score || '—', M + 420, y);
+
+      normal(7.5);
+      doc.text(rating, M + 470, y);
+
+      y += 19;
+    });
+  }
+  y += 10;
+
+  // ── Needs Revision ───────────────────────────────
+  if (weak.length > 0) {
+    checkBreak(36);
+    sectionTitle('NEEDS REVISION', C.orange);
+
+    weak.forEach(m => {
+      checkBreak(20);
+      const tName = m.topic.length > 43 ? m.topic.slice(0, 40) + '…' : m.topic;
+      normal(9); setTxt(C.text);
+      doc.text(`* ${tName}`, M + 4, y);
+      bold(8.5); setTxt(C.orange);
+      doc.text(`${m.score}`, M + 395, y);
+      if (m.nextReviewDate) {
+        normal(7.5); setTxt(C.subtext);
+        doc.text(`Review: ${m.nextReviewDate}`, M + 430, y);
+      }
+      y += 19;
+    });
+    y += 8;
+  }
+
+  // ── 30-Day Activity Grid ─────────────────────────
+  checkBreak(80);
+  sectionTitle('30-DAY ACTIVITY');
+
+  const DOT = 13, GAP = 3;
+  let dx = M;
+  const labelPoints = [];
+
+  for (let i = 29; i >= 0; i--) {
+    const d      = new Date(Date.now() - i * 86400000);
+    const ds     = d.toISOString().slice(0, 10);
+    const active = actLog.some(l => l.date === ds);
+    rgb(active ? C.accent : C.divider);
+    doc.roundedRect(dx, y, DOT, DOT, 2, 2, 'F');
+    if ((29 - i) % 7 === 0) {
+      labelPoints.push({ x: dx + DOT / 2, label: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) });
+    }
+    dx += DOT + GAP;
+  }
+  y += DOT + 8;
+
+  // Date labels
+  normal(7); setTxt(C.subtext);
+  labelPoints.forEach(lp => doc.text(lp.label, lp.x, y, { align: 'center' }));
+  y += 12;
+
+  // Legend
+  rgb(C.accent);  doc.roundedRect(M,      y, 9, 9, 1.5, 1.5, 'F');
+  rgb(C.divider); doc.roundedRect(M + 72, y, 9, 9, 1.5, 1.5, 'F');
+  normal(7.5); setTxt(C.subtext);
+  doc.text('Active day',  M + 13, y + 7);
+  doc.text('No activity', M + 85, y + 7);
+  y += 20;
+
+  // ── Learning Path Progress Bar ───────────────────
+  if (nodes.length > 0) {
+    checkBreak(55);
+    sectionTitle('LEARNING PATH PROGRESS');
+
+    const done  = doneNodes.length;
+    const pct   = nodes.length ? Math.round((done / nodes.length) * 100) : 0;
+    const total = nodes.length;
+
+    normal(9); setTxt(C.text);
+    doc.text(`${topic}: ${done} of ${total} topics complete (${pct}%)`, M, y);
+    y += 10;
+
+    // Track bg
+    rgb(C.divider); doc.roundedRect(M, y, CW, 12, 3, 3, 'F');
+    // Track fill
+    if (pct > 0) {
+      rgb(C.accent); doc.roundedRect(M, y, Math.max(6, CW * pct / 100), 12, 3, 3, 'F');
+    }
+    y += 22;
+
+    // Show first few upcoming nodes if any
+    const upcoming = nodes.filter(n => n.status !== 'done').slice(0, 4);
+    if (upcoming.length > 0) {
+      checkBreak(20);
+      normal(8); setTxt(C.subtext);
+      doc.text('Up next:', M, y); y += 12;
+      upcoming.forEach(n => {
+        checkBreak(16);
+        normal(8.5); setTxt(C.text);
+        doc.text(`  - ${n.title}`, M, y);
+        setTxt(C.subtext); normal(7.5);
+        doc.text(`~${n.estTime || 20} min`, PW - M, y, { align: 'right' });
+        y += 15;
+      });
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // FOOTER on every page
+  // ═══════════════════════════════════════════════════
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    rgb(C.footerBg); doc.rect(0, PH - 28, PW, 28, 'F');
+    normal(7.5); setTxt([120, 145, 165]);
+    doc.text('Generated by StudyFlow AI', M, PH - 10);
+    doc.text(pdfDate, PW / 2, PH - 10, { align: 'center' });
+    doc.text(`Page ${p} of ${totalPages}`, PW - M, PH - 10, { align: 'right' });
+  }
+
+  // ── Save ──────────────────────────────────────────
+  const safeName = studentName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+  doc.save(`StudyFlow-Report-${safeName}-${new Date().toISOString().slice(0, 10)}.pdf`);
+
+  showMotivation('📄', 'PDF Exported!', `Your progress report has been downloaded.`, 4000);
 }
 
 function renderProgressWall() {
@@ -1685,7 +1980,8 @@ function renderProgressWall() {
   actionDiv.className = 'progress-action-section';
   actionDiv.innerHTML = `
     <button class="btn btn-ghost" id="btn-share-wall">💬 Share</button>
-    <button class="btn btn-ghost" id="btn-download-wall">📸 Download</button>`;
+    <button class="btn btn-ghost" id="btn-download-wall">📸 Download</button>
+    <button class="btn btn-export-pdf" id="btn-export-pdf-wall">📄 PDF Report</button>`;
   wall.appendChild(actionDiv);
 
   [...list].reverse().forEach((item, revIdx) => {
@@ -1712,6 +2008,7 @@ function renderProgressWall() {
   // Attach event listeners
   $('btn-share-wall')?.addEventListener('click', shareProgressWall);
   $('btn-download-wall')?.addEventListener('click', downloadProgressWallImage);
+  $('btn-export-pdf-wall')?.addEventListener('click', exportProgressPDF);
 
   // Review buttons
   wall.querySelectorAll('.btn-review').forEach(btn => {
