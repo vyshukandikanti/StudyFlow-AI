@@ -2421,11 +2421,6 @@ function saveProfile() {
   updateDashboard();
 }
 
-function logout() {
-  if (!confirm('Clear all progress and reset? This cannot be undone.')) return;
-  localStorage.removeItem('sf2');
-  location.reload();
-}
 
 /* ════════════════════════════════════════════════════
    MOTIVATIONAL TOASTS
