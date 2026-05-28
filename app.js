@@ -254,12 +254,115 @@ function load() {
     if (!raw) return;
     const p = JSON.parse(raw);
     S.user     = { name:'', topic:'', level:'class10', studyTime:'19:00', ...p.user };
-    S.learning = { nodes:[], currentNodeIdx:0, startTime:null, ...p.learning };
+    S.learning = { nodes:[], currentNodeIdx:0, startTime:null, savedTopics:[], ...p.learning };
     S.progress = { mastered:[], streak:0, lastActive:null, lastNotifDate:null, activityLog:[], ...p.progress };
     S.quiz     = { questions:[], currentQ:0, answers:[], node:'', difficulty:'medium', ...p.quiz };
     S.ui       = { currentScreen:'dashboard', ...p.ui };
   } catch(e) {}
 }
+
+/* ════════════════════════════════════════════════════
+   MULTI-TOPIC MANAGEMENT
+════════════════════════════════════════════════════ */
+
+// Park the current active topic into savedTopics (upsert)
+function saveCurrentTopicToSaved() {
+  if (!S.user.topic || !S.learning.nodes.length) return;
+  if (!S.learning.savedTopics) S.learning.savedTopics = [];
+  const entry = {
+    topic: S.user.topic,
+    icon:  topicIcon(S.user.topic),
+    nodes: S.learning.nodes,
+    currentNodeIdx: S.learning.currentNodeIdx
+  };
+  const idx = S.learning.savedTopics.findIndex(t => t.topic === S.user.topic);
+  if (idx >= 0) S.learning.savedTopics[idx] = entry;
+  else S.learning.savedTopics.push(entry);
+}
+
+// Make a saved topic the active one
+function switchToTopic(topicName) {
+  if (topicName === S.user.topic) {
+    // Already active — just navigate to the tree screen
+    showScreen('tree');
+    if (S.learning.nodes.length) {
+      renderTree(); show('tree-output'); hide('tree-empty'); hide('tree-loading');
+      tx('tree-main-topic', topicName.toUpperCase());
+      $('tree-topic-input').value = topicName;
+    }
+    return;
+  }
+  const saved = (S.learning.savedTopics || []).find(t => t.topic === topicName);
+  if (!saved) return;
+
+  saveCurrentTopicToSaved();                                          // park current
+  S.learning.savedTopics = S.learning.savedTopics.filter(t => t.topic !== topicName); // remove incoming
+  S.user.topic           = topicName;
+  S.learning.nodes       = saved.nodes;
+  S.learning.currentNodeIdx = saved.currentNodeIdx;
+  S.learning.startTime   = null;
+  save(); updateDashboard();
+  showMotivation('🔄', `Switched to ${topicName}`, 'Continue from where you left off!', 3000);
+}
+
+// Save current topic, clear active state, go to tree screen for a new topic
+function addNewTopic() {
+  saveCurrentTopicToSaved();
+  S.user.topic              = '';
+  S.learning.nodes          = [];
+  S.learning.currentNodeIdx = 0;
+  S.learning.startTime      = null;
+  save(); updateDashboard();
+  showScreen('tree');
+  $('tree-topic-input').value = '';
+  hide('tree-output'); show('tree-empty');
+  setTimeout(() => $('tree-topic-input')?.focus(), 100);
+}
+
+// Render "My Topics" multi-topic switcher cards on the dashboard
+function renderMyTopics() {
+  const el = $('my-topics-section');
+  if (!el) return;
+
+  const saved    = S.learning.savedTopics || [];
+  const hasActive = !!(S.user.topic && S.learning.nodes.length);
+  if ((hasActive ? 1 : 0) + saved.length < 2) { el.innerHTML = ''; return; }
+
+  const cards = [];
+  if (hasActive) {
+    const done = S.learning.nodes.filter(n => n.status === 'done').length;
+    const pct  = Math.round((done / S.learning.nodes.length) * 100);
+    cards.push({ topic: S.user.topic, icon: topicIcon(S.user.topic), done, total: S.learning.nodes.length, pct, active: true });
+  }
+  saved.forEach(t => {
+    const done = t.nodes.filter(n => n.status === 'done').length;
+    const pct  = t.nodes.length ? Math.round((done / t.nodes.length) * 100) : 0;
+    cards.push({ topic: t.topic, icon: t.icon || topicIcon(t.topic), done, total: t.nodes.length, pct, active: false });
+  });
+
+  el.innerHTML = `
+    <div class="neon-divider"></div>
+    <div class="section-label">⬡ MY TOPICS</div>
+    <div class="my-topics-list">
+      ${cards.map(c => `
+        <div class="topic-row-card${c.active ? ' active-topic' : ''}">
+          <div class="topic-row-icon">${c.icon}</div>
+          <div class="topic-row-body">
+            <div class="topic-row-name">${escHtml(c.topic)}${c.active ? ' <span class="active-badge">ACTIVE</span>' : ''}</div>
+            <div class="topic-row-meta">${c.done} of ${c.total} concepts · ${c.pct}%</div>
+            <div class="topic-row-bar"><div class="topic-row-fill" style="width:${c.pct}%"></div></div>
+          </div>
+          <button class="btn-topic-action" data-topic="${escAttr(c.topic)}">${c.active ? '▶ Continue' : '↩ Switch'}</button>
+        </div>`).join('')}
+    </div>`;
+
+  el.querySelectorAll('.btn-topic-action').forEach(btn =>
+    btn.addEventListener('click', () => switchToTopic(btn.dataset.topic))
+  );
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s) { return String(s).replace(/"/g,'&quot;'); }
 
 /* ════════════════════════════════════════════════════
    HELPERS
@@ -856,8 +959,11 @@ function updateDashboard() {
     }
   } else {
     tx('today-topic', '—');
-    tx('today-sub', 'Complete setup to start learning');
+    tx('today-sub', 'Add a topic below to start learning');
   }
+
+  // Render multi-topic switcher cards
+  renderMyTopics();
 }
 
 /* ════════════════════════════════════════════════════
@@ -867,6 +973,11 @@ async function generateTree() {
   const inp   = $('tree-topic-input');
   const topic = inp.value.trim() || S.user.topic;
   if (!topic) { inp.focus(); return; }
+
+  // If building a different topic, park the current one first
+  if (topic !== S.user.topic && S.user.topic && S.learning.nodes.length > 0) {
+    saveCurrentTopicToSaved();
+  }
 
   hide('tree-empty'); hide('tree-output'); show('tree-loading');
   $('btn-generate-tree').disabled = true;
@@ -2335,9 +2446,7 @@ function initAllListeners() {
     }
   });
 
-  $('btn-explore-topic')?.addEventListener('click', () => {
-    showScreen('tree'); $('tree-topic-input').value = ''; $('tree-topic-input').focus();
-  });
+  $('btn-explore-topic')?.addEventListener('click', addNewTopic);
 
   /* Tree */
   $('btn-generate-tree')?.addEventListener('click', generateTree);

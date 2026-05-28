@@ -2030,6 +2030,101 @@ input[type="text"]::placeholder { color: var(--dimmer); }
   font-weight: 600;
 }
 
+/* ── MY TOPICS — MULTI-TOPIC SWITCHER ───────────── */
+.my-topics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.topic-row-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  transition: border-color .2s, background .2s;
+}
+.topic-row-card.active-topic {
+  border-color: rgba(0,198,255,0.5);
+  background: rgba(0,198,255,0.05);
+}
+
+.topic-row-icon { font-size: 22px; flex-shrink: 0; }
+
+.topic-row-body { flex: 1; min-width: 0; }
+
+.topic-row-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.active-badge {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  background: var(--accent);
+  color: #000;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.topic-row-meta {
+  font-size: 11px;
+  color: var(--dimmer);
+  margin-bottom: 5px;
+}
+
+.topic-row-bar {
+  height: 4px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.topic-row-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width .4s ease;
+}
+.topic-row-card.active-topic .topic-row-fill { background: var(--green); }
+
+.btn-topic-action {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 13px;
+  color: var(--dim);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.btn-topic-action:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,198,255,0.08);
+}
+.topic-row-card.active-topic .btn-topic-action {
+  border-color: rgba(0,198,255,0.4);
+  color: var(--accent);
+}
+
 /* ── EXPORT PDF BUTTON ───────────────────────────── */
 .btn-export-pdf {
   background: linear-gradient(135deg, rgba(0,198,255,0.12) 0%, rgba(130,80,210,0.12) 100%);
