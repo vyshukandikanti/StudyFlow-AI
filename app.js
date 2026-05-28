@@ -319,12 +319,36 @@ function addNewTopic() {
   setTimeout(() => $('tree-topic-input')?.focus(), 100);
 }
 
+// Delete a topic (isActive=true removes the active one, savedIdx removes a parked one)
+function deleteTopic(isActive, savedIdx) {
+  const saved = S.learning.savedTopics || [];
+  if (isActive) {
+    // Promote the first saved topic to active, or clear everything
+    if (saved.length > 0) {
+      const next = saved[0];
+      S.learning.savedTopics = saved.slice(1);
+      S.user.topic           = next.topic;
+      S.learning.nodes       = next.nodes;
+      S.learning.currentNodeIdx = next.currentNodeIdx;
+      S.learning.startTime   = null;
+    } else {
+      S.user.topic              = '';
+      S.learning.nodes          = [];
+      S.learning.currentNodeIdx = 0;
+      S.learning.startTime      = null;
+    }
+  } else {
+    S.learning.savedTopics = saved.filter((_, i) => i !== savedIdx);
+  }
+  save(); updateDashboard();
+}
+
 // Render "My Topics" multi-topic switcher cards on the dashboard
 function renderMyTopics() {
   const el = $('my-topics-section');
   if (!el) return;
 
-  const saved    = S.learning.savedTopics || [];
+  const saved     = S.learning.savedTopics || [];
   const hasActive = !!(S.user.topic && S.learning.nodes.length);
   if ((hasActive ? 1 : 0) + saved.length < 2) { el.innerHTML = ''; return; }
 
@@ -332,12 +356,12 @@ function renderMyTopics() {
   if (hasActive) {
     const done = S.learning.nodes.filter(n => n.status === 'done').length;
     const pct  = Math.round((done / S.learning.nodes.length) * 100);
-    cards.push({ topic: S.user.topic, icon: topicIcon(S.user.topic), done, total: S.learning.nodes.length, pct, active: true });
+    cards.push({ topic: S.user.topic, icon: topicIcon(S.user.topic), done, total: S.learning.nodes.length, pct, active: true, savedIdx: -1 });
   }
-  saved.forEach(t => {
+  saved.forEach((t, i) => {
     const done = t.nodes.filter(n => n.status === 'done').length;
     const pct  = t.nodes.length ? Math.round((done / t.nodes.length) * 100) : 0;
-    cards.push({ topic: t.topic, icon: t.icon || topicIcon(t.topic), done, total: t.nodes.length, pct, active: false });
+    cards.push({ topic: t.topic, icon: t.icon || topicIcon(t.topic), done, total: t.nodes.length, pct, active: false, savedIdx: i });
   });
 
   el.innerHTML = `
@@ -352,12 +376,26 @@ function renderMyTopics() {
             <div class="topic-row-meta">${c.done} of ${c.total} concepts · ${c.pct}%</div>
             <div class="topic-row-bar"><div class="topic-row-fill" style="width:${c.pct}%"></div></div>
           </div>
-          <button class="btn-topic-action" data-topic="${escAttr(c.topic)}">${c.active ? '▶ Continue' : '↩ Switch'}</button>
+          <div class="topic-row-actions">
+            <button class="btn-topic-action"
+              data-active="${c.active}"
+              data-savedidx="${c.savedIdx}"
+              data-topic="${escAttr(c.topic)}">
+              ${c.active ? '▶ Continue' : '↩ Switch'}
+            </button>
+            <button class="btn-topic-delete"
+              data-active="${c.active}"
+              data-savedidx="${c.savedIdx}"
+              title="Remove topic">✕</button>
+          </div>
         </div>`).join('')}
     </div>`;
 
   el.querySelectorAll('.btn-topic-action').forEach(btn =>
     btn.addEventListener('click', () => switchToTopic(btn.dataset.topic))
+  );
+  el.querySelectorAll('.btn-topic-delete').forEach(btn =>
+    btn.addEventListener('click', () => deleteTopic(btn.dataset.active === 'true', parseInt(btn.dataset.savedidx)))
   );
 }
 
@@ -999,6 +1037,9 @@ Rules: 5-8 nodes, ordered prerequisite basics → main topic → advanced applic
     const raw  = await callGemini(prompt);
     const data = parseJSON(raw);
     if (!data?.nodes?.length) throw new Error('bad');
+
+    // Remove any old saved entry with the same name to avoid duplicates
+    S.learning.savedTopics = (S.learning.savedTopics || []).filter(t => t.topic !== topic);
 
     S.learning.nodes = data.nodes.map((n, i) => {
       const estTime = estimateTopicTime(n.title, S.user.level, i, data.nodes.length);
