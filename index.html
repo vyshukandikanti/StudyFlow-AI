@@ -143,6 +143,10 @@
         <span class="nav-icon">📊</span>
         <span class="nav-label">Analytics</span>
       </button>
+      <button class="nav-item" data-screen="leaderboard">
+        <span class="nav-icon">🏆</span>
+        <span class="nav-label">Ranks</span>
+      </button>
       <button class="nav-item" data-screen="settings">
         <span class="nav-icon">⚙️</span>
         <span class="nav-label">Settings</span>
@@ -371,6 +375,30 @@
 
       <!-- Export PDF -->
       <button class="btn btn-export-pdf full-btn" id="btn-export-pdf-analytics" onclick="exportProgressPDF()">📄 Export Progress Report PDF</button>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div id="screen-leaderboard" class="screen-content hidden">
+      <div class="section-label">⬡ GLOBAL LEADERBOARD</div>
+
+      <!-- Top 3 Podium -->
+      <div class="lb-podium" id="lb-podium"></div>
+
+      <!-- Column headers -->
+      <div class="lb-header-row">
+        <div class="lb-col-rank">Rank</div>
+        <div class="lb-col-name">Student</div>
+        <div class="lb-col-streak">Streak</div>
+        <div class="lb-col-topics">Topics</div>
+        <div class="lb-col-score">Avg Score</div>
+      </div>
+
+      <!-- Ranked list -->
+      <div id="leaderboard-list">
+        <div class="lb-loading"><div class="pulse-dot"></div> Loading rankings…</div>
+      </div>
+
+      <button class="btn btn-ghost full-btn" id="btn-lb-refresh" style="margin-top:12px">🔄 Refresh</button>
     </div>
 
     <!-- SETTINGS -->

@@ -183,9 +183,10 @@ function setupAppListeners() {
       document.querySelectorAll('.nav-item:not(.logout)').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       showScreen(screen);
-      if (screen === 'progress') renderProgressWall();
-      if (screen === 'analytics') renderAnalytics();
-      if (screen === 'settings') loadSettings();
+      if (screen === 'progress')    renderProgressWall();
+      if (screen === 'analytics')   renderAnalytics();
+      if (screen === 'leaderboard') renderLeaderboard();
+      if (screen === 'settings')    loadSettings();
       if (screen === 'tree') {
         if (S.learning.nodes.length > 0) {
           $('tree-topic-input').value = S.user.topic;
@@ -1660,6 +1661,7 @@ function advanceNode() {
     setTimeout(() => alert(`🎉 You completed "${S.user.topic}"! Check your Topics Wall.`), 300);
   }
   updateStreak(); save();
+  submitToLeaderboard(); // push updated score to global leaderboard
 }
 
 /* ════════════════════════════════════════════════════
@@ -1691,6 +1693,109 @@ function renderQuestion(prefix, data, onAnswer) {
 /* ════════════════════════════════════════════════════
    PROGRESS WALL
 ════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════
+   LEADERBOARD
+════════════════════════════════════════════════════ */
+
+// Push current user's score to Cloudflare KV leaderboard
+async function submitToLeaderboard() {
+  try {
+    const user = Auth.getUser();
+    if (!user) return;
+    const mastered = S.progress.mastered || [];
+    const avgScore = mastered.length
+      ? Math.round((mastered.reduce((s, m) => s + (parseInt(m.score) || 0), 0) / (mastered.length * 3)) * 100)
+      : 0;
+    await fetch(`${GROQ_URL}/leaderboard`, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({
+        name       : user.name,
+        email      : user.email,
+        streak     : S.progress.streak     || 0,
+        topicsCount: mastered.length,
+        avgScore
+      })
+    });
+  } catch(e) { /* silent — offline or worker error */ }
+}
+
+// Fetch leaderboard entries from Cloudflare KV
+async function fetchLeaderboard() {
+  try {
+    const res = await fetch(`${GROQ_URL}/leaderboard`);
+    if (!res.ok) throw new Error('fetch failed');
+    return await res.json();
+  } catch(e) { return null; }
+}
+
+// Render the leaderboard screen
+async function renderLeaderboard() {
+  const listEl   = $('leaderboard-list');
+  const podiumEl = $('lb-podium');
+  if (!listEl) return;
+
+  // Show loading
+  listEl.innerHTML   = '<div class="lb-loading"><div class="pulse-dot"></div> Loading rankings…</div>';
+  if (podiumEl) podiumEl.innerHTML = '';
+
+  // Submit own score first (fire-and-forget), then fetch
+  submitToLeaderboard();
+  const entries = await fetchLeaderboard();
+
+  if (!entries) {
+    listEl.innerHTML = '<div class="lb-empty">⚠ Could not reach leaderboard. Check your connection.</div>';
+    return;
+  }
+  if (entries.length === 0) {
+    listEl.innerHTML = '<div class="lb-empty">🌟 No entries yet — complete a quiz to be the first!</div>';
+    return;
+  }
+
+  // Figure out current user's emailKey to highlight their row
+  const currentUser = Auth.getUser();
+  let myKey = '';
+  if (currentUser) {
+    try { myKey = btoa(currentUser.email.toLowerCase()).replace(/[^a-zA-Z0-9]/g, '').slice(0, 24); }
+    catch(e) {}
+  }
+
+  // ── Podium (top 3) ───────────────────────────────
+  if (podiumEl && entries.length >= 1) {
+    const order = entries.length >= 3
+      ? [entries[1], entries[0], entries[2]]   // 2nd left, 1st center, 3rd right
+      : entries.length === 2 ? [entries[1], entries[0], null]
+      : [null, entries[0], null];
+
+    const heights = ['70px', '95px', '55px'];
+    const medals  = ['🥈', '🥇', '🥉'];
+    const labels  = ['2nd', '1st', '3rd'];
+
+    podiumEl.innerHTML = order.map((e, i) => e ? `
+      <div class="lb-podium-slot${e.emailKey === myKey ? ' lb-podium-me' : ''}">
+        <div class="lb-podium-name">${escHtml(e.name)}</div>
+        <div class="lb-podium-streak">${e.streak}🔥</div>
+        <div class="lb-podium-medal">${medals[i]}</div>
+        <div class="lb-podium-block" style="height:${heights[i]}">${labels[i]}</div>
+      </div>` : '<div class="lb-podium-slot lb-podium-empty"></div>'
+    ).join('');
+  }
+
+  // ── Ranked rows ──────────────────────────────────
+  const medals = ['🥇', '🥈', '🥉'];
+  listEl.innerHTML = entries.slice(0, 25).map((e, i) => {
+    const isMe  = e.emailKey === myKey;
+    const rank  = medals[i] || `#${i + 1}`;
+    return `<div class="lb-row${isMe ? ' lb-me' : ''}">
+      <div class="lb-col-rank">${rank}</div>
+      <div class="lb-col-name">${escHtml(e.name)}${isMe ? ' <span class="lb-you-tag">YOU</span>' : ''}</div>
+      <div class="lb-col-streak">${e.streak} 🔥</div>
+      <div class="lb-col-topics">${e.topicsCount}</div>
+      <div class="lb-col-score">${e.avgScore}%</div>
+    </div>`;
+  }).join('');
+}
+
 /* ════════════════════════════════════════════════════
    ANALYTICS DASHBOARD
 ════════════════════════════════════════════════════ */
@@ -2488,6 +2593,7 @@ function initAllListeners() {
   });
 
   $('btn-explore-topic')?.addEventListener('click', addNewTopic);
+  $('btn-lb-refresh')?.addEventListener('click', renderLeaderboard);
 
   /* Tree */
   $('btn-generate-tree')?.addEventListener('click', generateTree);
