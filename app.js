@@ -1213,46 +1213,58 @@ async function goQuiz(nodeName) {
   const lvMap = { class7:'7th grade', class10:'10th grade', class12:'12th grade', engineering:'engineering', curious:'general' };
   const lv = lvMap[S.user.level] || '10th grade';
 
-  const diffPromptMap = {
-    easy: `EASY difficulty — basic recall questions. Ask about simple definitions, "what is X called", or direct facts stated in the story. Use simple clear wording. A student who read the story carefully should get all 3 correct. No tricks, no traps.`,
-    medium: `MEDIUM difficulty — understanding + application questions. Ask students to apply the concept to a simple real-life scenario, or explain WHY something works the way it does based on what they read. Mix recall with one-step reasoning.`,
-    hard: `HARD difficulty — deep analysis questions. Ask students to compare, evaluate, or apply the concept to a NEW unfamiliar situation not directly mentioned in the story. Require genuine understanding — not just memorization. Make wrong options plausible and tricky.`
+  const diffGuide = {
+    easy:   'EASY: Ask 3 simple recall questions — definitions and basic facts directly from the story. Any student who read it should answer correctly.',
+    medium: 'MEDIUM: Ask 3 questions mixing recall and application — test understanding and ability to use the concept in a simple example.',
+    hard:   'HARD: Ask 3 challenging questions — test deep understanding, reasoning about WHY concepts work, or applying knowledge analytically.'
   };
-  const diffInstruction = diffPromptMap[S.quiz.difficulty || 'medium'];
+  const diffInstruction = diffGuide[S.quiz.difficulty || 'medium'];
 
-  const storyContext = S.learning.currentStory || '';
-  const prompt = `A ${lv} student just read this story to learn "${nodeName}" (topic: ${S.user.topic}):
+  // Trim story to avoid token limits (keep first 1200 chars)
+  const storyContext = (S.learning.currentStory || '').slice(0, 1200);
 
+  const prompt = `Topic: "${nodeName}" (${S.user.topic}) — ${lv} student.
+
+Story summary the student just read:
 """
 ${storyContext}
 """
 
-Create exactly 3 quiz questions based on the story above.
-DIFFICULTY LEVEL: ${diffInstruction}
+${diffInstruction}
 
-Rules:
-- Test ONLY concepts covered in the story above
-- Each question must directly relate to something the student just read
-- Match the difficulty level exactly as described above
-
-Return ONLY valid JSON:
-{"questions":[
-  {"question":"...","options":["A","B","C","D"],"correct":0,"explanation":"..."},
-  {"question":"...","options":["A","B","C","D"],"correct":1,"explanation":"..."},
-  {"question":"...","options":["A","B","C","D"],"correct":2,"explanation":"..."}
-]}`;
+Return ONLY this exact JSON (no extra text, no markdown):
+{"questions":[{"question":"...","options":["A","B","C","D"],"correct":0,"explanation":"..."},{"question":"...","options":["A","B","C","D"],"correct":1,"explanation":"..."},{"question":"...","options":["A","B","C","D"],"correct":2,"explanation":"..."}]}`;
 
   try {
     const raw  = await callGemini(prompt);
     const data = parseJSON(raw);
-    if (!data?.questions?.length) throw new Error('bad');
+    if (!data?.questions?.length) throw new Error('bad json');
     S.quiz.questions = data.questions.slice(0, 3);
     save();
     hide('quiz-loading'); show('quiz-question-wrap');
     renderQuizQ();
   } catch(e) {
     hide('quiz-loading');
-    tx('quiz-topic', 'Could not load quiz — tap Back and try again.');
+    // Show proper error UI with Retry and Back buttons
+    const errCard = document.createElement('div');
+    errCard.className = 'quiz-error-card';
+    errCard.innerHTML = `
+      <div class="quiz-error-emoji">😕</div>
+      <div class="quiz-error-msg">Quiz couldn't load — the AI had trouble generating questions.</div>
+      <button class="btn btn-neon full-btn" id="btn-quiz-retry-err">🔄 Try Again</button>
+      <button class="btn btn-ghost full-btn" id="btn-quiz-back-story">← Back to Story</button>`;
+    const screen = $('screen-quiz');
+    // Remove old error card if any
+    screen.querySelector('.quiz-error-card')?.remove();
+    screen.appendChild(errCard);
+    $('btn-quiz-retry-err').addEventListener('click', () => {
+      errCard.remove();
+      goQuiz(nodeName);
+    });
+    $('btn-quiz-back-story').addEventListener('click', () => {
+      errCard.remove();
+      goStory(S.learning.nodes[S.learning.currentNodeIdx]?.title || nodeName, false);
+    });
   }
 }
 
@@ -1350,6 +1362,28 @@ function showQuizResult() {
     const short = q.question.length > 58 ? q.question.slice(0, 55) + '…' : q.question;
     item.innerHTML = `<span>${ok ? '✅' : '❌'}</span><span>${short}</span>`;
     bl.appendChild(item);
+  });
+
+  // ── Try Different Difficulty ────────────────────
+  const resultEl = $('quiz-result');
+  resultEl.querySelector('.diff-retry-section')?.remove();
+  const retrySection = document.createElement('div');
+  retrySection.className = 'diff-retry-section';
+  const cur = S.quiz.difficulty || 'medium';
+  retrySection.innerHTML = `
+    <div class="diff-retry-label">🎮 Try this topic at a different level:</div>
+    <div class="diff-retry-btns">
+      <button class="diff-retry-btn ${cur==='easy'?'active-diff':''}" data-diff="easy">🟢 Easy</button>
+      <button class="diff-retry-btn ${cur==='medium'?'active-diff':''}" data-diff="medium">🟡 Medium</button>
+      <button class="diff-retry-btn ${cur==='hard'?'active-diff':''}" data-diff="hard">🔴 Hard</button>
+    </div>`;
+  resultEl.appendChild(retrySection);
+  retrySection.querySelectorAll('.diff-retry-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      S.quiz.difficulty = btn.dataset.diff;
+      save();
+      goQuiz(S.quiz.node);
+    });
   });
 }
 

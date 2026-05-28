@@ -1488,6 +1488,56 @@ input[type="text"]::placeholder { color: var(--dimmer); }
 .diff-badge-medium { background: rgba(255,124,0,0.1);   color: var(--orange); border: 1px solid rgba(255,124,0,0.3); }
 .diff-badge-hard   { background: rgba(255,68,102,0.1);  color: var(--red);    border: 1px solid rgba(255,68,102,0.3); }
 
+/* Quiz error card (when AI fails to generate) */
+.quiz-error-card {
+  text-align: center;
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.quiz-error-emoji { font-size: 48px; }
+.quiz-error-msg   { font-size: 14px; color: var(--dim); line-height: 1.6; margin-bottom: 8px; }
+
+/* Retry difficulty section on quiz result */
+.diff-retry-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.diff-retry-label {
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.diff-retry-btns {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+.diff-retry-btn {
+  flex: 1;
+  max-width: 100px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--dim);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.diff-retry-btn:hover { border-color: var(--accent); color: var(--text); transform: translateY(-1px); }
+.diff-retry-btn.active-diff {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,198,255,0.08);
+  cursor: default;
+}
+
 /* ── SETTINGS ────────────────────────────────────── */
 .profile-card {
   display: flex;
