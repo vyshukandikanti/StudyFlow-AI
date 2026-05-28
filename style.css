@@ -1512,6 +1512,67 @@ input[type="text"]::placeholder { color: var(--dimmer); }
   color: var(--accent);
 }
 
+/* ── MOTIVATIONAL TOAST ──────────────────────────── */
+.motivation-toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--bg2);
+  border: 1.5px solid var(--border-s);
+  border-left: 4px solid var(--accent);
+  border-radius: 14px;
+  padding: 16px 18px;
+  max-width: 320px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(0,198,255,0.1);
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+}
+
+.motivation-toast.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.mot-emoji {
+  font-size: 30px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.mot-body { flex: 1; min-width: 0; }
+
+.mot-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.mot-msg {
+  font-size: 12px;
+  color: var(--dim);
+  line-height: 1.5;
+}
+
+.mot-close {
+  background: transparent;
+  border: none;
+  color: var(--dimmer);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: -2px;
+  transition: color .2s;
+}
+.mot-close:hover { color: var(--text); }
+
 /* ── BREAK TIMER MODAL ───────────────────────────── */
 .break-modal-content {
   max-width: 360px;

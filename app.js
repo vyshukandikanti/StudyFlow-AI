@@ -1029,7 +1029,17 @@ function showStartTimeModal(idx) {
 function proceedToNode(idx) {
   S.learning.currentNodeIdx = idx;
   S.learning.nodes[idx].status = 'current';
+  S.learning.nodes[idx].nodeStartTime = new Date().toISOString(); // track when student started
   save();
+
+  // Motivate before hard topics
+  const title = S.learning.nodes[idx].title || '';
+  if (/advanced|oop|object.oriented|algorithm|architecture|optimization|analysis|design pattern/i.test(title)) {
+    showMotivation('💪', 'Challenging Topic Ahead!', `"${title}" is tough — but you've made it this far. Take your time.`, 5000);
+  } else if (S.progress.mastered.length === 0 && idx === 0) {
+    showMotivation('🚀', 'Your Journey Starts Now!', 'Every expert was once a beginner. Let\'s go!', 5000);
+  }
+
   goStory(S.learning.nodes[idx].title, false);
 }
 
@@ -1435,6 +1445,36 @@ function advanceNode() {
   logActivityToday();
 
   const actualScore = S.quiz.answers.filter(Boolean).length;
+
+  // ── Smart Motivational Toast ─────────────────────
+  setTimeout(() => {
+    const estTime  = node.estTime || 20;
+    const started  = node.nodeStartTime ? new Date(node.nodeStartTime) : null;
+    const elapsed  = started ? (Date.now() - started.getTime()) / 60000 : null;
+    const isHard   = /advanced|oop|object.oriented|algorithm|architecture|optimization|analysis|design pattern/i.test(node.title || '');
+    const isFirst  = S.progress.mastered.length === 0;
+    const streak   = S.progress.streak || 0;
+    const finishedEarly = elapsed !== null && elapsed < estTime * 0.85;
+
+    if (isFirst) {
+      showMotivation('🌟', 'First Concept Mastered!', 'Every journey starts with one step — this is yours!');
+    } else if (actualScore === 3 && S.quiz.difficulty === 'hard' && isHard) {
+      showMotivation('🏆', 'Incredible!', `Perfect score on a Hard, advanced topic. That's elite-level focus!`);
+    } else if (actualScore === 3 && isHard) {
+      showMotivation('💪', 'Tough Topic Conquered!', `"${node.title}" is one of the harder concepts — and you nailed it!`);
+    } else if (finishedEarly && actualScore === 3) {
+      showMotivation('⚡', 'Ahead of Schedule!', `You finished "${node.title}" ${Math.round(estTime - elapsed)} mins early with a perfect score. Outstanding!`);
+    } else if (finishedEarly) {
+      showMotivation('⚡', 'Faster Than Expected!', `You completed "${node.title}" well before the estimated ${estTime} mins. Keep the pace!`);
+    } else if ([3,7,10,14,21,30].includes(streak)) {
+      showMotivation('🔥', `${streak}-Day Streak!`, `${streak} days of consistent learning — you're building something great!`);
+    } else if (actualScore === 3) {
+      showMotivation('🎯', 'Perfect Score!', 'You understood every single concept in this topic. Well done!');
+    } else {
+      showMotivation('👍', 'Concept Complete!', `"${node.title}" is checked off. Keep going — you're making real progress!`);
+    }
+  }, 600);
+
   S.progress.mastered.push({
     topic: node.title,
     parentTopic: S.user.topic,
@@ -1801,6 +1841,37 @@ function logout() {
   if (!confirm('Clear all progress and reset? This cannot be undone.')) return;
   localStorage.removeItem('sf2');
   location.reload();
+}
+
+/* ════════════════════════════════════════════════════
+   MOTIVATIONAL TOASTS
+════════════════════════════════════════════════════ */
+let motivationTimer = null;
+
+function showMotivation(emoji, title, msg, duration = 5000) {
+  // Remove any existing toast
+  document.querySelector('.motivation-toast')?.remove();
+  if (motivationTimer) { clearTimeout(motivationTimer); motivationTimer = null; }
+
+  const toast = document.createElement('div');
+  toast.className = 'motivation-toast';
+  toast.innerHTML = `
+    <div class="mot-emoji">${emoji}</div>
+    <div class="mot-body">
+      <div class="mot-title">${title}</div>
+      <div class="mot-msg">${msg}</div>
+    </div>
+    <button class="mot-close" onclick="this.closest('.motivation-toast').remove()">×</button>`;
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => toast.classList.add('show'));
+  });
+
+  motivationTimer = setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, duration);
 }
 
 /* ════════════════════════════════════════════════════
