@@ -1430,6 +1430,64 @@ input[type="text"]::placeholder { color: var(--dimmer); }
   box-shadow: 0 0 10px rgba(176,96,255,0.3);
 }
 
+/* ── DIFFICULTY PICKER ───────────────────────────── */
+.diff-modal-content { max-width: 460px; }
+
+.diff-sub {
+  font-size: 13px;
+  color: var(--dim);
+  margin-top: -14px;
+  margin-bottom: 20px;
+}
+
+.diff-grid {
+  display: flex;
+  gap: 10px;
+}
+
+.diff-btn {
+  flex: 1;
+  background: rgba(0,198,255,0.02);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 10px;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.diff-btn:hover { transform: translateY(-3px); }
+.diff-btn[data-diff="easy"]:hover   { border-color: var(--green);  box-shadow: 0 0 16px rgba(0,255,136,0.25); background: rgba(0,255,136,0.05); }
+.diff-btn[data-diff="medium"]:hover { border-color: var(--orange); box-shadow: 0 0 16px rgba(255,124,0,0.25);  background: rgba(255,124,0,0.05); }
+.diff-btn[data-diff="hard"]:hover   { border-color: var(--red);    box-shadow: 0 0 16px rgba(255,68,102,0.25); background: rgba(255,68,102,0.05); }
+
+.diff-btn.selected[data-diff="easy"]   { border-color: var(--green);  background: rgba(0,255,136,0.08); }
+.diff-btn.selected[data-diff="medium"] { border-color: var(--orange); background: rgba(255,124,0,0.08);  }
+.diff-btn.selected[data-diff="hard"]   { border-color: var(--red);    background: rgba(255,68,102,0.08); }
+
+.diff-emoji { font-size: 26px; }
+.diff-label { font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+.diff-desc  { font-size: 10px; color: var(--dim); text-align: center; line-height: 1.5; }
+
+/* Difficulty badge on quiz screen */
+.diff-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+
+.diff-badge-easy   { background: rgba(0,255,136,0.1);   color: var(--green);  border: 1px solid rgba(0,255,136,0.3); }
+.diff-badge-medium { background: rgba(255,124,0,0.1);   color: var(--orange); border: 1px solid rgba(255,124,0,0.3); }
+.diff-badge-hard   { background: rgba(255,68,102,0.1);  color: var(--red);    border: 1px solid rgba(255,68,102,0.3); }
+
 /* ── SETTINGS ────────────────────────────────────── */
 .profile-card {
   display: flex;

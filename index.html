@@ -278,6 +278,7 @@
     <div id="screen-quiz" class="screen-content hidden">
       <div class="quiz-progress-dots" id="quiz-dots"></div>
       <div class="quiz-meta" id="quiz-meta">Question 1 of 3</div>
+      <div class="diff-badge hidden" id="quiz-diff-badge">🟡 Medium</div>
       <div class="quiz-topic" id="quiz-topic"></div>
       <div class="screen-time" id="quiz-time"></div>
       <div class="ai-status" id="quiz-loading"><div class="pulse-dot"></div> Generating quiz...</div>
@@ -428,6 +429,31 @@
         <div class="settings-title">SESSION</div>
         <button class="btn btn-ghost full-btn" id="btn-change-start-time">⏰ Change Session Start Time</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DIFFICULTY PICKER MODAL ══ -->
+<div id="modal-difficulty" class="modal hidden">
+  <div class="modal-content diff-modal-content">
+    <div class="modal-header">⚡ Pick Your Challenge</div>
+    <div class="diff-sub">How hard should the quiz be?</div>
+    <div class="diff-grid">
+      <button class="diff-btn" data-diff="easy">
+        <div class="diff-emoji">🟢</div>
+        <div class="diff-label">Easy</div>
+        <div class="diff-desc">Basic recall &amp; definitions</div>
+      </button>
+      <button class="diff-btn" data-diff="medium">
+        <div class="diff-emoji">🟡</div>
+        <div class="diff-label">Medium</div>
+        <div class="diff-desc">Apply concepts &amp; examples</div>
+      </button>
+      <button class="diff-btn" data-diff="hard">
+        <div class="diff-emoji">🔴</div>
+        <div class="diff-label">Hard</div>
+        <div class="diff-desc">Analyse &amp; evaluate deeply</div>
+      </button>
     </div>
   </div>
 </div>

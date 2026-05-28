@@ -212,7 +212,7 @@ let S = {
   user:     { name: '', topic: '', level: 'class10', studyTime: '19:00' },
   learning: { nodes: [], currentNodeIdx: 0, startTime: null },
   progress: { mastered: [], streak: 0, lastActive: null, lastNotifDate: null, activityLog: [] },
-  quiz:     { questions: [], currentQ: 0, answers: [], node: '' },
+  quiz:     { questions: [], currentQ: 0, answers: [], node: '', difficulty: 'medium' },
   ui:       { currentScreen: 'dashboard', voiceEnabled: false }
 };
 
@@ -1163,6 +1163,26 @@ Write ONLY the explanation text. No JSON, no headings, no bullet points, no form
 }
 
 /* ════════════════════════════════════════════════════
+   QUIZ DIFFICULTY PICKER
+════════════════════════════════════════════════════ */
+function showDifficultyPicker(nodeName) {
+  const modal = $('modal-difficulty');
+  modal.classList.remove('hidden');
+
+  modal.querySelectorAll('.diff-btn').forEach(btn => {
+    // Highlight previously chosen difficulty
+    btn.classList.toggle('selected', btn.dataset.diff === (S.quiz.difficulty || 'medium'));
+
+    btn.onclick = () => {
+      S.quiz.difficulty = btn.dataset.diff;
+      save();
+      modal.classList.add('hidden');
+      goQuiz(nodeName);
+    };
+  });
+}
+
+/* ════════════════════════════════════════════════════
    QUIZ
 ════════════════════════════════════════════════════ */
 async function goQuiz(nodeName) {
@@ -1182,8 +1202,23 @@ async function goQuiz(nodeName) {
   hide('quiz-question-wrap'); hide('quiz-result'); show('quiz-loading');
   drawQuizDots();
 
+  // Show difficulty badge
+  const diffBadge = $('quiz-diff-badge');
+  if (diffBadge) {
+    const diffInfo = { easy: '🟢 Easy', medium: '🟡 Medium', hard: '🔴 Hard' };
+    diffBadge.textContent = diffInfo[S.quiz.difficulty] || '🟡 Medium';
+    diffBadge.className = `diff-badge diff-badge-${S.quiz.difficulty || 'medium'}`;
+  }
+
   const lvMap = { class7:'7th grade', class10:'10th grade', class12:'12th grade', engineering:'engineering', curious:'general' };
   const lv = lvMap[S.user.level] || '10th grade';
+
+  const diffPromptMap = {
+    easy: `EASY difficulty — basic recall questions. Ask about simple definitions, "what is X called", or direct facts stated in the story. Use simple clear wording. A student who read the story carefully should get all 3 correct. No tricks, no traps.`,
+    medium: `MEDIUM difficulty — understanding + application questions. Ask students to apply the concept to a simple real-life scenario, or explain WHY something works the way it does based on what they read. Mix recall with one-step reasoning.`,
+    hard: `HARD difficulty — deep analysis questions. Ask students to compare, evaluate, or apply the concept to a NEW unfamiliar situation not directly mentioned in the story. Require genuine understanding — not just memorization. Make wrong options plausible and tricky.`
+  };
+  const diffInstruction = diffPromptMap[S.quiz.difficulty || 'medium'];
 
   const storyContext = S.learning.currentStory || '';
   const prompt = `A ${lv} student just read this story to learn "${nodeName}" (topic: ${S.user.topic}):
@@ -1192,15 +1227,20 @@ async function goQuiz(nodeName) {
 ${storyContext}
 """
 
-Create exactly 3 quiz questions that test ONLY the concepts, examples, and analogies explained in the story above. Do NOT ask about things not covered in the story. Each question should directly relate to something the student just read.
+Create exactly 3 quiz questions based on the story above.
+DIFFICULTY LEVEL: ${diffInstruction}
+
+Rules:
+- Test ONLY concepts covered in the story above
+- Each question must directly relate to something the student just read
+- Match the difficulty level exactly as described above
 
 Return ONLY valid JSON:
 {"questions":[
   {"question":"...","options":["A","B","C","D"],"correct":0,"explanation":"..."},
   {"question":"...","options":["A","B","C","D"],"correct":1,"explanation":"..."},
   {"question":"...","options":["A","B","C","D"],"correct":2,"explanation":"..."}
-]}
-Reference the analogies and examples from the story. Make questions a student who actually read the story can answer.`;
+]}`;
 
   try {
     const raw  = await callGemini(prompt);
@@ -1763,7 +1803,7 @@ function initAllListeners() {
   /* Story */
   $('btn-go-quiz')?.addEventListener('click', () => {
     saveNotes();
-    goQuiz(S.learning.nodes[S.learning.currentNodeIdx].title);
+    showDifficultyPicker(S.learning.nodes[S.learning.currentNodeIdx].title);
   });
   $('btn-voice-read')?.addEventListener('click', () => {
     const text = $('story-text').textContent;
