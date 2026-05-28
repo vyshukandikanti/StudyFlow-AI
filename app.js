@@ -805,7 +805,7 @@ function parseJSON(text) {
 /* ════════════════════════════════════════════════════
    SCREEN NAVIGATION
 ════════════════════════════════════════════════════ */
-const ALL_SCREENS = ['dashboard','tree','diagnostic','story','quiz','progress','analytics','settings'];
+const ALL_SCREENS = ['dashboard','tree','diagnostic','story','quiz','progress','analytics','leaderboard','settings'];
 
 /* ════════════════════════════════════════════════════
    SPACED REPETITION HELPERS
