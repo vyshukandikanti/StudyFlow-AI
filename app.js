@@ -1754,7 +1754,9 @@ function init() {
 
   if (S.user.name && S.user.topic) {
     updateStreak(); updateDashboard();
-    const lastScreen = S.ui.currentScreen || 'dashboard';
+    // Never restore to in-progress screens (quiz/story/diagnostic can't resume after refresh)
+    const transient = ['quiz', 'story', 'diagnostic'];
+    const lastScreen = transient.includes(S.ui.currentScreen) ? 'dashboard' : (S.ui.currentScreen || 'dashboard');
     showScreen(lastScreen);
     startNotificationScheduler();
   } else {
