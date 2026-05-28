@@ -1488,6 +1488,30 @@ input[type="text"]::placeholder { color: var(--dimmer); }
 .diff-badge-medium { background: rgba(255,124,0,0.1);   color: var(--orange); border: 1px solid rgba(255,124,0,0.3); }
 .diff-badge-hard   { background: rgba(255,68,102,0.1);  color: var(--red);    border: 1px solid rgba(255,68,102,0.3); }
 
+/* Badge + change button row */
+.quiz-diff-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.btn-diff-change {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--dim);
+  font-size: 11px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: 0.5px;
+}
+.btn-diff-change:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* Quiz error card (when AI fails to generate) */
 .quiz-error-card {
   text-align: center;

@@ -1202,12 +1202,17 @@ async function goQuiz(nodeName) {
   hide('quiz-question-wrap'); hide('quiz-result'); show('quiz-loading');
   drawQuizDots();
 
-  // Show difficulty badge
+  // Show difficulty badge + Change button
   const diffBadge = $('quiz-diff-badge');
   if (diffBadge) {
     const diffInfo = { easy: '🟢 Easy', medium: '🟡 Medium', hard: '🔴 Hard' };
     diffBadge.textContent = diffInfo[S.quiz.difficulty] || '🟡 Medium';
     diffBadge.className = `diff-badge diff-badge-${S.quiz.difficulty || 'medium'}`;
+  }
+  const changeDiffBtn = $('btn-diff-change');
+  if (changeDiffBtn) {
+    changeDiffBtn.classList.remove('hidden');
+    changeDiffBtn.onclick = () => showDifficultyPicker(S.quiz.node || nodeName);
   }
 
   const lvMap = { class7:'7th grade', class10:'10th grade', class12:'12th grade', engineering:'engineering', curious:'general' };
@@ -1305,6 +1310,7 @@ function nextQuizQ() {
 
 function showQuizResult() {
   hide('quiz-question-wrap'); show('quiz-result');
+  hide('btn-diff-change'); // hide the mid-quiz change button — retry section takes over
   const score = S.quiz.answers.filter(Boolean).length;
   const node  = S.quiz.node;
 
