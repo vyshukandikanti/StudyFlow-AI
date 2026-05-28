@@ -222,17 +222,39 @@ let voiceState = {
   utterance: null
 };
 
-function save() { localStorage.setItem('sf2', JSON.stringify(S)); }
+// Per-user storage key — each account gets its own data
+function getUserDataKey() {
+  const email = localStorage.getItem('sf_user_email') || 'guest';
+  return `sf2_${email}`;
+}
+
+function save() { localStorage.setItem(getUserDataKey(), JSON.stringify(S)); }
 
 function load() {
   try {
-    const raw = localStorage.getItem('sf2');
+    const key = getUserDataKey();
+    let raw = localStorage.getItem(key);
+
+    // One-time migration: if no per-user data found, check if old shared sf2 belongs to this user
+    if (!raw) {
+      const oldRaw = localStorage.getItem('sf2');
+      if (oldRaw) {
+        const oldParsed = JSON.parse(oldRaw);
+        const currentUser = Auth.getUser();
+        // Migrate only if the name matches — so other users don't inherit this data
+        if (currentUser && oldParsed?.user?.name === currentUser.name) {
+          localStorage.setItem(key, oldRaw);
+          raw = oldRaw;
+        }
+      }
+    }
+
     if (!raw) return;
     const p = JSON.parse(raw);
     S.user     = { name:'', topic:'', level:'class10', studyTime:'19:00', ...p.user };
     S.learning = { nodes:[], currentNodeIdx:0, startTime:null, ...p.learning };
-    S.progress = { mastered:[], streak:0, lastActive:null, lastNotifDate:null, ...p.progress };
-    S.quiz     = { questions:[], currentQ:0, answers:[], node:'', ...p.quiz };
+    S.progress = { mastered:[], streak:0, lastActive:null, lastNotifDate:null, activityLog:[], ...p.progress };
+    S.quiz     = { questions:[], currentQ:0, answers:[], node:'', difficulty:'medium', ...p.quiz };
     S.ui       = { currentScreen:'dashboard', ...p.ui };
   } catch(e) {}
 }
