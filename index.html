@@ -421,9 +421,16 @@
         <div class="field-label">DAILY REMINDER TIME</div>
         <input type="time" id="reminder-time" class="time-input"/>
         <button class="btn btn-ghost full-btn" id="btn-save-time">Save Time</button>
-        <button class="btn btn-ghost full-btn" id="btn-enable-notif">🔔 Enable Notifications</button>
-        <button class="btn btn-ghost full-btn" id="btn-test-notif">📬 Send Test</button>
+        <button class="btn btn-neon full-btn" id="btn-enable-notif">🔔 Step 1 — Enable Notifications</button>
+        <button class="btn btn-ghost full-btn" id="btn-test-notif">📬 Step 2 — Send Test</button>
         <div class="api-key-status" id="notif-status">Notifications not enabled</div>
+        <div class="notif-guide">
+          <div class="notif-guide-title">📋 If notifications don't pop up on Windows:</div>
+          <div class="notif-guide-step">1. Press <strong>Win + I</strong> → System → Notifications</div>
+          <div class="notif-guide-step">2. Make sure <strong>Chrome is set to On</strong></div>
+          <div class="notif-guide-step">3. Turn off <strong>Focus Assist / Do Not Disturb</strong></div>
+          <div class="notif-guide-step">4. In Chrome address bar: <strong>chrome://settings/content/notifications</strong> → Allow this site</div>
+        </div>
       </div>
 
       <div class="neon-divider"></div>

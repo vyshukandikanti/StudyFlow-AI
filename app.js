@@ -1792,34 +1792,43 @@ async function sendTestNotification() {
     return;
   }
   if (Notification.permission !== 'granted') {
-    if (nSt) { nSt.textContent = '⚠ Click "Enable Browser Notifications" first'; nSt.className = 'api-key-status err'; }
+    if (nSt) { nSt.textContent = '⚠ Click "Enable Notifications" first, then try again'; nSt.className = 'api-key-status err'; }
     return;
   }
+
   const { title, body } = buildNotificationText();
+
+  // Always show in-app preview toast (so the user always sees something)
+  showMotivation('🔔', title, body, 8000);
+
+  // Also try to fire a real OS notification
   let fired = false;
   try {
     const reg = await navigator.serviceWorker.getRegistration();
     if (reg) {
       await reg.showNotification(title, {
         body, tag: 'studyflow-test', icon: 'icon.svg', badge: 'icon.svg',
-        vibrate: [200, 100, 200], requireInteraction: false
+        vibrate: [200, 100, 200], requireInteraction: true  // stays until dismissed
       });
       fired = true;
     }
   } catch(e) { console.warn('SW notif failed:', e); }
+
   if (!fired) {
     try {
-      new Notification(title, { body, icon: 'icon.svg', tag: 'studyflow-test' });
+      new Notification(title, { body, icon: 'icon.svg', tag: 'studyflow-test', requireInteraction: true });
       fired = true;
-    } catch(e) {
-      console.error('Direct notif failed:', e);
-      if (nSt) { nSt.textContent = `❌ Failed: ${e.message}. On file:// Chrome blocks notifications — deploy to https.`; nSt.className = 'api-key-status err'; }
-      return;
-    }
+    } catch(e) { console.warn('Direct notif failed:', e); }
   }
-  if (fired && nSt) {
-    nSt.textContent = '✓ Test sent! Check top-right of your screen for the notification.';
-    nSt.className = 'api-key-status ok';
+
+  if (nSt) {
+    if (fired) {
+      nSt.textContent = '✓ Notification sent! If no popup appeared, check: Windows Settings → Notifications → Chrome → Allow';
+      nSt.className = 'api-key-status ok';
+    } else {
+      nSt.textContent = '⚠ In-app preview shown above. OS notification blocked — see Windows Settings → Notifications → Chrome';
+      nSt.className = 'api-key-status';
+    }
   }
 }
 
