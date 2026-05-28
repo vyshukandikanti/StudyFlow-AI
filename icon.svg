@@ -1,17 +1,47 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#080C14"/>
-      <stop offset="100%" stop-color="#0E1520"/>
+      <stop offset="0%" stop-color="#5b21b6"/>
+      <stop offset="55%" stop-color="#2d2070"/>
+      <stop offset="100%" stop-color="#1e40af"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00C6FF"/>
-      <stop offset="100%" stop-color="#0090CC"/>
-    </linearGradient>
+    <radialGradient id="topglow" cx="72%" cy="26%" r="40%">
+      <stop offset="0%" stop-color="rgba(167,139,250,0.45)"/>
+      <stop offset="100%" stop-color="rgba(167,139,250,0)"/>
+    </radialGradient>
+    <radialGradient id="botglow" cx="28%" cy="74%" r="35%">
+      <stop offset="0%" stop-color="rgba(96,165,250,0.3)"/>
+      <stop offset="100%" stop-color="rgba(96,165,250,0)"/>
+    </radialGradient>
   </defs>
-  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
-  <rect x="40" y="40" width="432" height="432" rx="72" fill="none" stroke="#00C6FF" stroke-width="3" opacity="0.3"/>
-  <path d="M 130 160 L 256 110 L 382 160 L 382 380 L 256 410 L 130 380 Z" fill="none" stroke="url(#accent)" stroke-width="8" stroke-linejoin="round"/>
-  <path d="M 256 110 L 256 410" stroke="url(#accent)" stroke-width="6" opacity="0.5"/>
-  <text x="256" y="295" font-family="Arial Black, sans-serif" font-size="120" font-weight="900" text-anchor="middle" fill="url(#accent)" letter-spacing="-4">SF</text>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- Subtle ambient glows -->
+  <rect width="512" height="512" rx="112" fill="url(#topglow)"/>
+  <rect width="512" height="512" rx="112" fill="url(#botglow)"/>
+  <!-- Inner border ring -->
+  <rect x="10" y="10" width="492" height="492" rx="104"
+        fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+
+  <!-- Flow path connecting the three nodes -->
+  <path d="M 148 378 C 148 275 256 270 256 200 C 256 158 340 128 364 128"
+        fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="20"
+        stroke-linecap="round"/>
+
+  <!-- Node 1 — Start (bottom-left) -->
+  <circle cx="148" cy="378" r="32" fill="rgba(255,255,255,0.18)"/>
+  <circle cx="148" cy="378" r="22" fill="rgba(255,255,255,0.80)"/>
+
+  <!-- Node 2 — Progress (middle) -->
+  <circle cx="256" cy="200" r="38" fill="rgba(255,255,255,0.18)"/>
+  <circle cx="256" cy="200" r="27" fill="rgba(255,255,255,0.90)"/>
+
+  <!-- Node 3 — Mastery / Goal (top-right, largest + glow ring) -->
+  <circle cx="364" cy="128" r="62" fill="rgba(255,255,255,0.12)"/>
+  <circle cx="364" cy="128" r="48" fill="rgba(255,255,255,0.22)"/>
+  <circle cx="364" cy="128" r="36" fill="white"/>
+  <!-- 4-point star inside the goal node -->
+  <path d="M364 106 L370 122 L386 128 L370 134 L364 150 L358 134 L342 128 L358 122 Z"
+        fill="url(#bg)"/>
 </svg>
