@@ -1659,13 +1659,23 @@ function renderAnalytics() {
    EXPORT PROGRESS REPORT — PDF
 ════════════════════════════════════════════════════ */
 function exportProgressPDF() {
+  // If jsPDF hasn't loaded yet, load it now and retry
   if (typeof window.jspdf === 'undefined') {
-    showMotivation('⏳', 'Loading PDF library…', 'Please wait a moment and try again.', 3000);
+    showMotivation('⏳', 'Loading PDF library…', 'Hang on — clicking again in 3 seconds will work!', 3000);
+    if (!document.getElementById('jspdf-script')) {
+      const s = document.createElement('script');
+      s.id  = 'jspdf-script';
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload = () => exportProgressPDF();
+      document.head.appendChild(s);
+    }
     return;
   }
 
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  let doc;
+  try { doc = new jsPDF({ unit: 'pt', format: 'a4' }); }
+  catch(e) { showMotivation('❌', 'PDF Error', 'Could not start PDF: ' + e.message, 5000); return; }
 
   const user     = Auth.getUser();
   const mastered = S.progress.mastered || [];
@@ -1940,10 +1950,14 @@ function exportProgressPDF() {
   }
 
   // ── Save ──────────────────────────────────────────
-  const safeName = studentName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-  doc.save(`StudyFlow-Report-${safeName}-${new Date().toISOString().slice(0, 10)}.pdf`);
-
-  showMotivation('📄', 'PDF Exported!', `Your progress report has been downloaded.`, 4000);
+  try {
+    const safeName = studentName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    doc.save(`StudyFlow-Report-${safeName}-${new Date().toISOString().slice(0, 10)}.pdf`);
+    showMotivation('📄', 'PDF Exported!', 'Your progress report has been downloaded.', 4000);
+  } catch(e) {
+    console.error('PDF save failed:', e);
+    showMotivation('❌', 'PDF Failed', 'Could not save PDF: ' + e.message, 5000);
+  }
 }
 
 function renderProgressWall() {
