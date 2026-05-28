@@ -19,6 +19,7 @@ const Auth = {
   },
 
   signup(name, email, password, grade) {
+    email = email.toLowerCase().trim();
     let users = JSON.parse(localStorage.getItem('sf_users') || '[]');
     if (users.some(u => u.email === email)) {
       return { success: false, error: 'Email already registered' };
@@ -30,6 +31,7 @@ const Auth = {
   },
 
   login(email, password) {
+    email = email.toLowerCase().trim();
     const users = JSON.parse(localStorage.getItem('sf_users') || '[]');
     const user = users.find(u => u.email === email && u.password === password);
     if (!user) {
@@ -224,7 +226,7 @@ let voiceState = {
 
 // Per-user storage key — each account gets its own data
 function getUserDataKey() {
-  const email = localStorage.getItem('sf_user_email') || 'guest';
+  const email = (localStorage.getItem('sf_user_email') || 'guest').toLowerCase().trim();
   return `sf2_${email}`;
 }
 
@@ -1447,12 +1449,17 @@ function advanceNode() {
   const actualScore = S.quiz.answers.filter(Boolean).length;
 
   // ── Smart Motivational Toast ─────────────────────
+  // Capture these BEFORE mastered.push() so isFirst is correct
+  const _isFirstMastery = S.progress.mastered.length === 0;
+  const _nodeTitle      = node.title || '';
+  const _estTime        = node.estTime || 20;
+  const _started        = node.nodeStartTime ? new Date(node.nodeStartTime) : null;
+
   setTimeout(() => {
-    const estTime  = node.estTime || 20;
-    const started  = node.nodeStartTime ? new Date(node.nodeStartTime) : null;
-    const elapsed  = started ? (Date.now() - started.getTime()) / 60000 : null;
-    const isHard   = /advanced|oop|object.oriented|algorithm|architecture|optimization|analysis|design pattern/i.test(node.title || '');
-    const isFirst  = S.progress.mastered.length === 0;
+    const estTime  = _estTime;
+    const elapsed  = _started ? (Date.now() - _started.getTime()) / 60000 : null;
+    const isHard   = /advanced|oop|object.oriented|algorithm|architecture|optimization|analysis|design pattern/i.test(_nodeTitle);
+    const isFirst  = _isFirstMastery;
     const streak   = S.progress.streak || 0;
     const finishedEarly = elapsed !== null && elapsed < estTime * 0.85;
 
