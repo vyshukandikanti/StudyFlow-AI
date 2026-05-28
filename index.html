@@ -436,6 +436,49 @@
   </div>
 </div>
 
+<!-- ══ BREAK TIMER MODAL ══ -->
+<div id="modal-break" class="modal hidden">
+  <div class="modal-content break-modal-content">
+
+    <!-- Step 1: Pick duration -->
+    <div id="break-pick-view">
+      <div class="break-header">☕ Take a Break</div>
+      <div class="break-sub">You've earned it! How long?</div>
+      <div class="break-dur-btns">
+        <button class="break-dur-btn" data-mins="5">5 min</button>
+        <button class="break-dur-btn" data-mins="10">10 min</button>
+        <button class="break-dur-btn" data-mins="15">15 min</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Countdown -->
+    <div id="break-timer-view" class="hidden">
+      <div class="break-timer-label">Break ends in</div>
+      <div class="break-ring-wrap">
+        <svg class="break-ring-svg" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(0,198,255,0.1)" stroke-width="8"/>
+          <circle id="break-ring" cx="60" cy="60" r="50" fill="none"
+            stroke="var(--accent)" stroke-width="8"
+            stroke-dasharray="314" stroke-dashoffset="0"
+            stroke-linecap="round" transform="rotate(-90 60 60)"/>
+        </svg>
+        <div class="break-timer-display" id="break-timer-display">05:00</div>
+      </div>
+      <div class="break-tip" id="break-tip">💧 Drink some water</div>
+      <button class="btn btn-ghost full-btn" id="btn-skip-break">Skip Break →</button>
+    </div>
+
+    <!-- Step 3: Break done -->
+    <div id="break-done-view" class="hidden">
+      <div class="break-done-emoji">🎉</div>
+      <div class="break-done-title">Break Complete!</div>
+      <div class="break-done-sub">Feeling refreshed? Let's keep going!</div>
+      <button class="btn btn-neon full-btn" id="btn-end-break">Back to Learning 🚀</button>
+    </div>
+
+  </div>
+</div>
+
 <!-- ══ DIFFICULTY PICKER MODAL ══ -->
 <div id="modal-difficulty" class="modal hidden">
   <div class="modal-content diff-modal-content">

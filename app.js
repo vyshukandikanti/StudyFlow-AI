@@ -1370,8 +1370,16 @@ function showQuizResult() {
     bl.appendChild(item);
   });
 
-  // ── Try Different Difficulty ────────────────────
+  // ── Take a Break button ─────────────────────────
   const resultEl = $('quiz-result');
+  resultEl.querySelector('.break-btn-wrap')?.remove();
+  const breakWrap = document.createElement('div');
+  breakWrap.className = 'break-btn-wrap';
+  breakWrap.innerHTML = `<button class="btn btn-break full-btn" id="btn-take-break">☕ Take a Break</button>`;
+  resultEl.appendChild(breakWrap);
+  $('btn-take-break').addEventListener('click', showBreakModal);
+
+  // ── Try Different Difficulty ────────────────────
   resultEl.querySelector('.diff-retry-section')?.remove();
   const retrySection = document.createElement('div');
   retrySection.className = 'diff-retry-section';
@@ -1771,6 +1779,90 @@ function logout() {
   if (!confirm('Clear all progress and reset? This cannot be undone.')) return;
   localStorage.removeItem('sf2');
   location.reload();
+}
+
+/* ════════════════════════════════════════════════════
+   BREAK TIMER
+════════════════════════════════════════════════════ */
+let breakInterval = null;
+let breakTotal    = 0;
+let breakRemain   = 0;
+
+const BREAK_TIPS = [
+  '💧 Drink some water',
+  '👀 Rest your eyes — look far away',
+  '🧘 Take 3 deep breaths',
+  '🚶 Stand up and stretch',
+  '🌤️ Look outside the window',
+  '😊 Smile — you\'re doing great!'
+];
+
+function showBreakModal() {
+  const modal = $('modal-break');
+  modal.classList.remove('hidden');
+  show('break-pick-view');
+  hide('break-timer-view');
+  hide('break-done-view');
+  if (breakInterval) { clearInterval(breakInterval); breakInterval = null; }
+
+  modal.querySelectorAll('.break-dur-btn').forEach(btn => {
+    btn.onclick = () => startBreak(parseInt(btn.dataset.mins));
+  });
+  $('btn-skip-break').onclick = finishBreak;
+  $('btn-end-break').onclick  = () => modal.classList.add('hidden');
+}
+
+function startBreak(mins) {
+  breakTotal  = mins * 60;
+  breakRemain = breakTotal;
+  hide('break-pick-view');
+  show('break-timer-view');
+  hide('break-done-view');
+  updateBreakUI();
+  breakInterval = setInterval(() => {
+    breakRemain--;
+    updateBreakUI();
+    if (breakRemain <= 0) {
+      clearInterval(breakInterval);
+      breakInterval = null;
+      finishBreak();
+      fireBreakEndNotification();
+    }
+  }, 1000);
+}
+
+function updateBreakUI() {
+  const m = Math.floor(breakRemain / 60);
+  const s = breakRemain % 60;
+  tx('break-timer-display', `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`);
+  // Ring progress
+  const ring = $('break-ring');
+  if (ring) {
+    const pct = breakTotal > 0 ? breakRemain / breakTotal : 0;
+    ring.setAttribute('stroke-dashoffset', Math.round(314 * (1 - pct)));
+  }
+  // Rotate tips every 20 seconds
+  const tipIdx = Math.floor((breakTotal - breakRemain) / 20) % BREAK_TIPS.length;
+  tx('break-tip', BREAK_TIPS[tipIdx]);
+}
+
+function finishBreak() {
+  if (breakInterval) { clearInterval(breakInterval); breakInterval = null; }
+  hide('break-timer-view');
+  show('break-done-view');
+}
+
+async function fireBreakEndNotification() {
+  if (Notification.permission !== 'granted') return;
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (reg) {
+      reg.showNotification('☕ Break is over!', {
+        body: 'Feeling refreshed? Time to get back to learning! 📚',
+        icon: 'icon.svg', tag: 'studyflow-break'
+      });
+    }
+  } catch(e) {}
 }
 
 /* ════════════════════════════════════════════════════

@@ -1512,6 +1512,112 @@ input[type="text"]::placeholder { color: var(--dimmer); }
   color: var(--accent);
 }
 
+/* ── BREAK TIMER MODAL ───────────────────────────── */
+.break-modal-content {
+  max-width: 360px;
+  text-align: center;
+}
+
+.break-header {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.break-sub {
+  font-size: 13px;
+  color: var(--dim);
+  margin-bottom: 20px;
+}
+
+.break-dur-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.break-dur-btn {
+  flex: 1;
+  padding: 14px 10px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.break-dur-btn:hover {
+  border-color: var(--accent);
+  background: rgba(0,198,255,0.08);
+  transform: translateY(-3px);
+  box-shadow: 0 0 14px rgba(0,198,255,0.2);
+}
+
+.break-timer-label {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--dim);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.break-ring-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 16px;
+}
+
+.break-ring-svg {
+  width: 120px;
+  height: 120px;
+  filter: drop-shadow(0 0 10px rgba(0,198,255,0.3));
+}
+
+.break-timer-display {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.break-tip {
+  font-size: 14px;
+  color: var(--dim);
+  margin-bottom: 20px;
+  min-height: 22px;
+  transition: all .3s;
+}
+
+.break-done-emoji { font-size: 52px; margin-bottom: 12px; }
+.break-done-title  { font-size: 20px; font-weight: 700; color: var(--green); margin-bottom: 8px; }
+.break-done-sub    { font-size: 13px; color: var(--dim); margin-bottom: 20px; }
+
+/* Break button on result screen */
+.break-btn-wrap { margin-top: 12px; }
+
+.btn-break {
+  background: transparent;
+  border: 1.5px solid rgba(0,198,255,0.25);
+  color: var(--dim);
+  font-size: 13px;
+  transition: all .2s;
+}
+.btn-break:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,198,255,0.05);
+}
+
 /* Quiz error card (when AI fails to generate) */
 .quiz-error-card {
   text-align: center;
